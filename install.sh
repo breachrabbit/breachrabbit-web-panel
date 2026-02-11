@@ -1,343 +1,202 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-# ============================================
-# LM Panel Installation Script
-# ============================================
+# breachrabbit-web-panel bootstrap installer (skeleton v1)
 
-# Конфигурация (можно переопределить через переменные окружения или аргументы)
-DOMAIN="${DOMAIN:-}"               # если указан, будет выпущен SSL для панели
-ADMIN_EMAIL="${ADMIN_EMAIL:-admin@example.com}"
-PANEL_PORT="${PANEL_PORT:-3000}"
-PANEL_USER="${PANEL_USER:-admin}"
-PANEL_PASSWORD="${PANEL_PASSWORD:-}"  # если пусто – сгенерируется
-OLS_ADMIN_USER="${OLS_ADMIN_USER:-admin}"
-OLS_ADMIN_PASS="${OLS_ADMIN_PASS:-}"
-REPO_URL="${REPO_URL:-https://github.com/yourname/lmpanel.git}"
-BRANCH="${BRANCH:-main}"
-INSTALL_DIR="${INSTALL_DIR:-/opt/lmpanel}"
-DB_TYPE="${DB_TYPE:-sqlite}"       # sqlite или mysql
-
-# Цвета для вывода
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-NC='\033[0m' # No Color
-
-# Функции логирования
-info() { echo -e "${GREEN}[INFO]${NC} $1"; }
-warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
-error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
-
-# Проверка root
-if [[ $EUID -ne 0 ]]; then
-   error "Этот скрипт должен выполняться от root"
+if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
+  echo "[ERROR] Run installer as root: sudo bash install.sh"
+  exit 1
 fi
 
-# ============================================
-# 1. Системные обновления и базовые пакеты
-# ============================================
-install_base() {
-    info "Обновление системы и установка базовых пакетов..."
-    apt update && apt upgrade -y
-    apt install -y curl wget git ufw nftables build-essential \
-                   software-properties-common apt-transport-https \
-                   ca-certificates gnupg lsb-release
+if [[ ! -f /etc/os-release ]]; then
+  echo "[ERROR] Unsupported OS: /etc/os-release is missing"
+  exit 1
+fi
+
+# shellcheck disable=SC1091
+source /etc/os-release
+if [[ "${ID:-}" != "ubuntu" ]]; then
+  echo "[ERROR] This installer currently supports Ubuntu only"
+  exit 1
+fi
+
+log() {
+  printf '\n[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
 }
 
-# ============================================
-# 2. Установка OpenLiteSpeed
-# ============================================
-install_ols() {
-    info "Установка OpenLiteSpeed..."
-    wget -O - https://repo.litespeed.sh | bash
-    apt install -y openlitespeed
-    # Установка PHP (версии по умолчанию, можно добавить выбор)
-    apt install -y lsphp81 lsphp81-mysql lsphp81-curl lsphp81-mbstring \
-                   lsphp81-xml lsphp81-zip lsphp81-intl lsphp81-gd
-    # Создаём симлинк для php
-    ln -sf /usr/local/lsws/lsphp81/bin/php /usr/bin/php
-
-    # Настройка администратора OLS, если не задан пароль — генерируем
-    if [[ -z "$OLS_ADMIN_PASS" ]]; then
-        OLS_ADMIN_PASS=$(openssl rand -base64 12)
-    fi
-    # Смена пароля админа OLS
-    echo -e "$OLS_ADMIN_PASS\n$OLS_ADMIN_PASS" | /usr/local/lsws/admin/misc/admpass.sh
-
-    # Включаем API OLS (изменяем конфиг)
-    OLS_CONFIG="/usr/local/lsws/conf/httpd_config.conf"
-    sed -i 's/^adminapi\s\+enable\s\+0/adminapi enable 1/' "$OLS_CONFIG"
-    # Перезапуск OLS
-    systemctl restart lsws
+random_password() {
+  openssl rand -base64 24 | tr -d '=+/' | cut -c1-20
 }
 
-# ============================================
-# 3. Установка Nginx
-# ============================================
-install_nginx() {
-    info "Установка Nginx..."
-    apt install -y nginx
-    systemctl enable nginx
-    systemctl start nginx
+write_credentials_file() {
+  local file="$1"
+  local content="$2"
+  umask 077
+  printf '%s\n' "$content" > "$file"
 }
 
-# ============================================
-# 4. Установка MariaDB
-# ============================================
-install_mariadb() {
-    info "Установка MariaDB..."
-    apt install -y mariadb-server mariadb-client
-    systemctl enable mariadb
-    systemctl start mariadb
-
-    # Безопасная установка (автоматизация)
-    mysql -e "DELETE FROM mysql.user WHERE User='';"
-    mysql -e "DROP DATABASE IF EXISTS test;"
-    mysql -e "DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';"
-    mysql -e "FLUSH PRIVILEGES;"
+install_phase_updates() {
+  log "Phase 1/4: Checking and installing Ubuntu updates"
+  apt-get update -y
+  DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 }
 
-# ============================================
-# 5. Установка Node.js, PM2, и необходимых утилит
-# ============================================
-install_node() {
-    info "Установка Node.js 20.x..."
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-    apt install -y nodejs
-    npm install -g pm2
+install_phase_base_utils() {
+  log "Phase 2/4: Installing standard utilities"
+  DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    ca-certificates curl wget git unzip zip jq gnupg lsb-release software-properties-common \
+    htop net-tools dnsutils ufw fail2ban openssl cron
 }
 
-# ============================================
-# 6. Клонирование репозитория и сборка панели
-# ============================================
-setup_panel_code() {
-    info "Клонирование панели из $REPO_URL (ветка $BRANCH)..."
-    if [[ -d "$INSTALL_DIR" ]]; then
-        warn "Директория $INSTALL_DIR уже существует, будет перезаписана."
-        rm -rf "$INSTALL_DIR"
-    fi
-    git clone -b "$BRANCH" "$REPO_URL" "$INSTALL_DIR"
-    cd "$INSTALL_DIR"
+install_phase_stack() {
+  log "Phase 3/4: Installing core stack components"
 
-    info "Установка зависимостей Node.js..."
-    npm install
+  # OpenLiteSpeed repository + package
+  wget -qO - https://repo.litespeed.sh | bash
 
-    # Создаём .env.local
-    cp .env.example .env.local 2>/dev/null || touch .env.local
+  DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    openlitespeed \
+    nginx \
+    mariadb-server \
+    redis-server \
+    certbot \
+    python3-certbot-nginx \
+    nodejs npm \
+    php-fpm php-mysql
 
-    # Генерация пароля администратора панели, если не задан
-    if [[ -z "$PANEL_PASSWORD" ]]; then
-        PANEL_PASSWORD=$(openssl rand -base64 12)
-    fi
+  # Optional: admin UI for DB
+  DEBIAN_FRONTEND=noninteractive apt-get install -y adminer || true
 
-    # Записываем пароль в .env.local (будет использован при первом запуске seed)
-    cat >> .env.local <<EOF
-DATABASE_URL="file:./prisma/data.db?connection_limit=1"
-PANEL_ADMIN_USERNAME="$PANEL_USER"
-PANEL_ADMIN_PASSWORD_HASH=""
-PANEL_SECRET="$(openssl rand -base64 32)"
-EOF
-
-    # Выполняем миграцию Prisma и seed (создание админа)
-    info "Настройка базы данных..."
-    npx prisma migrate deploy
-    # Создаём администратора через seed
-    NODE_OPTIONS="--require dotenv/config" npx prisma db seed
+  systemctl enable --now lsws
+  systemctl enable --now nginx
+  systemctl enable --now mariadb
+  systemctl enable --now redis-server
+  systemctl enable --now cron
 }
 
-# ============================================
-# 7. Настройка базы данных (если MySQL)
-# ============================================
-setup_database() {
-    if [[ "$DB_TYPE" == "mysql" ]]; then
-        info "Создание базы данных и пользователя для панели..."
-        DB_NAME="lmpanel"
-        DB_USER="lmpanel"
-        DB_PASS=$(openssl rand -base64 12)
-        mysql -e "CREATE DATABASE IF NOT EXISTS $DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-        mysql -e "CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS';"
-        mysql -e "GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'localhost';"
-        mysql -e "FLUSH PRIVILEGES;"
+configure_initial_services() {
+  log "Phase 4/4: Initial configuration and credentials"
 
-        # Обновляем .env.local
-        sed -i "s|^DATABASE_URL=.*|DATABASE_URL=\"mysql://$DB_USER:$DB_PASS@localhost:3306/$DB_NAME\"|" "$INSTALL_DIR/.env.local"
-    else
-        info "Используется SQLite (по умолчанию)."
-    fi
-}
+  local ols_admin_pass db_root_pass app_secret adminer_url summary_file
+  ols_admin_pass="$(random_password)"
+  db_root_pass="$(random_password)"
+  app_secret="$(random_password)$(random_password)"
 
-# ============================================
-# 8. Запуск панели через PM2
-# ============================================
-start_panel() {
-    info "Сборка Next.js приложения..."
-    cd "$INSTALL_DIR"
-    npm run build
+  # OpenLiteSpeed admin password
+  if [[ -x /usr/local/lsws/admin/misc/admpass.sh ]]; then
+    /usr/local/lsws/admin/misc/admpass.sh <<PASS_INPUT
+admin
+${ols_admin_pass}
+${ols_admin_pass}
+PASS_INPUT
+  fi
 
-    info "Запуск панели через PM2..."
-    pm2 start npm --name "lmpanel" -- start -- -p "$PANEL_PORT"
-    pm2 save
-    pm2 startup systemd -u root --hp /root
-}
+  # MariaDB root password
+  mysql --protocol=socket -uroot <<SQL
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${db_root_pass}';
+FLUSH PRIVILEGES;
+SQL
 
-# ============================================
-# 9. Настройка Nginx reverse proxy для панели
-# ============================================
-setup_nginx_panel() {
-    info "Настройка Nginx для панели управления..."
+  # Prepare app directories
+  install -d -m 750 /opt/breachrabbit/{config,data,logs}
 
-    # Определяем IP сервера
-    SERVER_IP=$(curl -s ifconfig.me || hostname -I | awk '{print $1}')
+  local host_ip
+  host_ip="$(hostname -I | awk '{print $1}')"
 
-    if [[ -n "$DOMAIN" ]]; then
-        # Используем домен
-        NGINX_SERVER_NAME="$DOMAIN"
-        # Позже можно получить SSL
-    else
-        NGINX_SERVER_NAME="$SERVER_IP"
-    fi
-
-    cat > /etc/nginx/sites-available/lmpanel <<EOF
+  # Nginx placeholder config for Next.js panel
+  cat > /etc/nginx/sites-available/breachrabbit-panel.conf <<NGINX
 server {
     listen 80;
-    listen [::]:80;
-    server_name $NGINX_SERVER_NAME;
+    server_name _;
 
     location / {
-        proxy_pass http://127.0.0.1:$PANEL_PORT;
+        proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
+        proxy_set_header Connection "upgrade";
         proxy_set_header Host \$host;
         proxy_cache_bypass \$http_upgrade;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
     }
 }
-EOF
+NGINX
 
-    ln -sf /etc/nginx/sites-available/lmpanel /etc/nginx/sites-enabled/
-    nginx -t && systemctl reload nginx
+  ln -sf /etc/nginx/sites-available/breachrabbit-panel.conf /etc/nginx/sites-enabled/breachrabbit-panel.conf
+  rm -f /etc/nginx/sites-enabled/default
+  nginx -t
+  systemctl reload nginx
 
-    # Если указан домен, выпускаем SSL
-    if [[ -n "$DOMAIN" ]]; then
-        info "Выпуск SSL-сертификата для $DOMAIN через Let's Encrypt..."
-        apt install -y certbot python3-certbot-nginx
-        certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --email "$ADMIN_EMAIL"
-    fi
+  # Panel environment skeleton
+  cat > /opt/breachrabbit/config/.env <<ENV
+NODE_ENV=production
+APP_PORT=3000
+APP_SECRET=${app_secret}
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=${db_root_pass}
+DB_NAME=breachrabbit
+REDIS_URL=redis://127.0.0.1:6379
+OLS_API_BASE_URL=http://127.0.0.1:7080
+AEZA_API_KEY=CHANGE_ME
+ENV
+  chmod 600 /opt/breachrabbit/config/.env
+
+  if [[ -f /usr/share/adminer/adminer.php ]]; then
+    local php_socket
+    php_socket="$(ls /run/php/php*-fpm.sock 2>/dev/null | head -n1 || true)"
+
+    if [[ -n "${php_socket}" ]]; then
+      adminer_url="http://${host_ip}/adminer"
+      cat > /etc/nginx/snippets/adminer.conf <<SNIP
+location = /adminer {
+    include snippets/fastcgi-php.conf;
+    fastcgi_param SCRIPT_FILENAME /usr/share/adminer/adminer.php;
+    fastcgi_pass unix:${php_socket};
 }
+SNIP
 
-# ============================================
-# 10. Установка дополнительных компонентов (Restic, FileBrowser, ttyd и т.д.)
-# ============================================
-install_extras() {
-    info "Установка Restic..."
-    apt install -y restic
+      if ! grep -q "include /etc/nginx/snippets/adminer.conf;" /etc/nginx/sites-available/breachrabbit-panel.conf; then
+        sed -i '/server_name _;/a \
+    include /etc/nginx/snippets/adminer.conf;' /etc/nginx/sites-available/breachrabbit-panel.conf
+      fi
 
-    info "Установка acme.sh..."
-    curl https://get.acme.sh | sh -s email="$ADMIN_EMAIL"
-
-    info "Установка FileBrowser..."
-    curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
-    # Создаём конфиг для FileBrowser (будет проксироваться через панель)
-    mkdir -p /etc/filebrowser
-    cat > /etc/filebrowser/config.json <<EOF
-{
-  "port": 8081,
-  "baseURL": "/files",
-  "address": "127.0.0.1",
-  "log": "stdout",
-  "database": "/etc/filebrowser/database.db",
-  "root": "/"
-}
-EOF
-    # Создаём systemd unit для FileBrowser
-    cat > /etc/systemd/system/filebrowser.service <<EOF
-[Unit]
-Description=File Browser
-After=network.target
-
-[Service]
-ExecStart=/usr/local/bin/filebrowser -c /etc/filebrowser/config.json
-Restart=on-failure
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-EOF
-    systemctl daemon-reload
-    systemctl enable filebrowser
-    systemctl start filebrowser
-}
-
-# ============================================
-# 11. Настройка фаервола (UFW)
-# ============================================
-setup_firewall() {
-    info "Настройка UFW..."
-    ufw default deny incoming
-    ufw default allow outgoing
-    ufw allow ssh
-    ufw allow http
-    ufw allow https
-    # Порт OLS admin (если нужен удалённо)
-    ufw allow 7080/tcp
-    echo "y" | ufw enable
-}
-
-# ============================================
-# 12. Итоговая сводка
-# ============================================
-show_summary() {
-    info "========================================="
-    info "Установка LM Panel завершена успешно!"
-    info "========================================="
-    echo ""
-    echo -e "${GREEN}Панель управления доступна по адресу:${NC}"
-    if [[ -n "$DOMAIN" ]]; then
-        echo "   https://$DOMAIN"
+      nginx -t
+      systemctl reload nginx
     else
-        SERVER_IP=$(curl -s ifconfig.me || hostname -I | awk '{print $1}')
-        echo "   http://$SERVER_IP"
+      adminer_url="Installed, but php-fpm socket not found"
     fi
-    echo ""
-    echo -e "${GREEN}Учетные данные для входа в панель:${NC}"
-    echo "   Логин: $PANEL_USER"
-    echo "   Пароль: $PANEL_PASSWORD"
-    echo ""
-    echo -e "${GREEN}OpenLiteSpeed Admin:${NC}"
-    echo "   URL: http://$SERVER_IP:7080"
-    echo "   Логин: $OLS_ADMIN_USER"
-    echo "   Пароль: $OLS_ADMIN_PASS"
-    echo ""
-    if [[ "$DB_TYPE" == "mysql" ]]; then
-        echo -e "${GREEN}База данных панели:${NC}"
-        echo "   Имя БД: $DB_NAME"
-        echo "   Пользователь: $DB_USER"
-        echo "   Пароль: $DB_PASS"
-        echo ""
-    fi
-    echo -e "${YELLOW}Обязательно сохраните эти пароли в безопасном месте!${NC}"
+  else
+    adminer_url="Not installed"
+  fi
+
+  summary_file="/root/breachrabbit-install-summary.txt"
+  write_credentials_file "$summary_file" "$(cat <<SUMMARY
+BreachRabbit Panel bootstrap complete.
+
+| Service | URL | Login | Password / Token |
+|---|---|---|---|
+| OpenLiteSpeed Admin | https://${host_ip}:7080 | admin | ${ols_admin_pass} |
+| Nginx Panel Proxy (placeholder) | http://${host_ip} | - | - |
+| MariaDB Root | localhost:3306 | root | ${db_root_pass} |
+| Adminer | ${adminer_url} | root | ${db_root_pass} |
+| Panel env file | /opt/breachrabbit/config/.env | APP_SECRET | ${app_secret} |
+
+Saved: ${summary_file}
+SUMMARY
+)"
+
+  printf '\n%s\n\n' "============================================================"
+  cat "$summary_file"
+  printf '%s\n' "============================================================"
 }
 
-# ============================================
-# Основная функция
-# ============================================
 main() {
-    install_base
-    install_ols
-    install_nginx
-    install_mariadb       # можно сделать опционально
-    install_node
-    setup_panel_code
-    setup_database
-    start_panel
-    setup_nginx_panel
-    install_extras
-    setup_firewall
-    show_summary
+  install_phase_updates
+  install_phase_base_utils
+  install_phase_stack
+  configure_initial_services
+
+  log "Done. Next step: deploy Next.js panel code into /opt/breachrabbit and run it on port 3000."
 }
 
 main "$@"
