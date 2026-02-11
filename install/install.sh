@@ -32,6 +32,10 @@ random_password() {
   openssl rand -base64 24 | tr -d '=+/' | cut -c1-20
 }
 
+is_tty() {
+  [[ -t 0 ]]
+}
+
 write_credentials_file() {
   local file="$1"
   local content="$2"
@@ -86,6 +90,17 @@ start_openlitespeed() {
   warn "OpenLiteSpeed service unit not found (or only alias exists); install may be incomplete"
 }
 
+start_php_fpm_service() {
+  local php_fpm_service
+  php_fpm_service="$(systemctl list-unit-files --type=service | awk '{print $1}' | rg '^php[0-9.\-]*fpm\.service$' | head -n1 || true)"
+
+  if [[ -n "${php_fpm_service}" ]]; then
+    safe_enable_and_start_unit "${php_fpm_service}"
+  else
+    warn "PHP-FPM service unit not found, Adminer may not work until php-fpm is installed and started"
+  fi
+}
+
 install_phase_updates() {
   log "Phase 1/4: Checking and installing Ubuntu updates"
   apt-get update -y
@@ -123,37 +138,46 @@ install_phase_stack() {
   enable_and_start_service mariadb
   enable_and_start_service redis-server
   enable_and_start_service cron
+  start_php_fpm_service
 }
+
+OLS_ADMIN_PASS=""
+DB_ROOT_PASS=""
+INITIAL_DB_ROOT_PASS=""
+APP_SECRET=""
+ADMINER_URL=""
+REBOOT_REQUIRED="no"
+HOST_IP=""
+SUMMARY_FILE="/root/breachrabbit-install-summary.txt"
 
 configure_initial_services() {
   log "Phase 4/4: Initial configuration and credentials"
 
-  local ols_admin_pass db_root_pass app_secret adminer_url summary_file reboot_required
-  ols_admin_pass="$(random_password)"
-  db_root_pass="$(random_password)"
-  app_secret="$(random_password)$(random_password)"
-  reboot_required="no"
+  OLS_ADMIN_PASS="$(random_password)"
+  DB_ROOT_PASS="$(random_password)"
+  INITIAL_DB_ROOT_PASS="${DB_ROOT_PASS}"
+  APP_SECRET="$(random_password)$(random_password)"
+  REBOOT_REQUIRED="no"
 
   # OpenLiteSpeed admin password
   if [[ -x /usr/local/lsws/admin/misc/admpass.sh ]]; then
     /usr/local/lsws/admin/misc/admpass.sh <<PASS_INPUT
 admin
-${ols_admin_pass}
-${ols_admin_pass}
+${OLS_ADMIN_PASS}
+${OLS_ADMIN_PASS}
 PASS_INPUT
   fi
 
   # MariaDB root password
   mysql --protocol=socket -uroot <<SQL
-ALTER USER 'root'@'localhost' IDENTIFIED BY '${db_root_pass}';
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASS}';
 FLUSH PRIVILEGES;
 SQL
 
   # Prepare app directories
   install -d -m 750 /opt/breachrabbit/{config,data,logs,domains,sites,certs}
 
-  local host_ip
-  host_ip="$(hostname -I | awk '{print $1}')"
+  HOST_IP="$(hostname -I | awk '{print $1}')"
 
   # Nginx placeholder config for Next.js panel
   cat > /etc/nginx/sites-available/breachrabbit-panel.conf <<NGINX
@@ -181,12 +205,12 @@ NGINX
   cat > /opt/breachrabbit/config/.env <<ENV
 NODE_ENV=production
 APP_PORT=3000
-APP_SECRET=${app_secret}
-NEXTAUTH_SECRET=${app_secret}
+APP_SECRET=${APP_SECRET}
+NEXTAUTH_SECRET=${APP_SECRET}
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_USER=root
-DB_PASSWORD=${db_root_pass}
+DB_PASSWORD=${DB_ROOT_PASS}
 DB_NAME=breachrabbit
 REDIS_URL=redis://127.0.0.1:6379
 OLS_API_BASE_URL=http://127.0.0.1:7080
@@ -199,20 +223,28 @@ PANEL_NGINX_ENABLED_ROOT=/etc/nginx/sites-enabled
 PANEL_SITES_ROOT=/opt/breachrabbit/sites
 PANEL_DOMAIN_REGISTRY_PATH=/opt/breachrabbit/data/domain-registry.json
 PANEL_TARGET_URL=http://127.0.0.1:3000
-PANEL_CERTBOT_EMAIL=admin@${host_ip}.nip.io
+PANEL_CERTBOT_EMAIL=admin@${HOST_IP}.nip.io
 ENV
   chmod 600 /opt/breachrabbit/config/.env
 
-  if [[ -f /usr/share/adminer/adminer.php ]]; then
+  if [[ -f /usr/share/adminer/adminer.php ]] || [[ -f /usr/share/adminer/adminer/index.php ]]; then
     local php_socket
     php_socket="$(ls /run/php/php*-fpm.sock 2>/dev/null | head -n1 || true)"
 
     if [[ -n "${php_socket}" ]]; then
-      adminer_url="http://${host_ip}/adminer"
+      local adminer_script
+      if [[ -f /usr/share/adminer/adminer.php ]]; then
+        adminer_script="/usr/share/adminer/adminer.php"
+      else
+        adminer_script="/usr/share/adminer/adminer/index.php"
+      fi
+
+      ADMINER_URL="http://${HOST_IP}/adminer"
       cat > /etc/nginx/snippets/adminer.conf <<SNIP
-location = /adminer {
+location /adminer {
     include snippets/fastcgi-php.conf;
-    fastcgi_param SCRIPT_FILENAME /usr/share/adminer/adminer.php;
+    fastcgi_param SCRIPT_FILENAME ${adminer_script};
+    fastcgi_param SCRIPT_NAME /adminer;
     fastcgi_pass unix:${php_socket};
 }
 SNIP
@@ -224,39 +256,88 @@ SNIP
 
       nginx -t
       systemctl reload nginx
+
+      if ! curl -fsS "http://127.0.0.1/adminer" >/dev/null 2>&1; then
+        ADMINER_URL="Configured, but local check failed (http://127.0.0.1/adminer)"
+      fi
     else
-      adminer_url="Installed, but php-fpm socket not found"
+      ADMINER_URL="Installed, but php-fpm socket not found"
     fi
   else
-    adminer_url="Not installed"
+    ADMINER_URL="Not installed"
   fi
 
   if [[ -f /var/run/reboot-required ]]; then
-    reboot_required="yes"
+    REBOOT_REQUIRED="yes"
+  fi
+}
+
+manual_set_mariadb_root_password() {
+  log "Final step: manual MariaDB root password setup before access summary"
+
+  local entered_pass confirm_pass
+
+  if is_tty; then
+    while true; do
+      read -r -s -p "Enter MariaDB root password (leave empty to keep generated): " entered_pass
+      printf '\n'
+
+      if [[ -z "${entered_pass}" ]]; then
+        warn "Keeping generated MariaDB root password"
+        break
+      fi
+
+      read -r -s -p "Repeat MariaDB root password: " confirm_pass
+      printf '\n'
+
+      if [[ "${entered_pass}" != "${confirm_pass}" ]]; then
+        warn "Passwords do not match. Try again."
+        continue
+      fi
+
+      DB_ROOT_PASS="${entered_pass}"
+      break
+    done
+  else
+    warn "Non-interactive shell detected. Keeping generated MariaDB root password."
   fi
 
-  summary_file="/root/breachrabbit-install-summary.txt"
-  write_credentials_file "$summary_file" "$(cat <<SUMMARY
+  if ! mysql --protocol=socket -uroot -p"${INITIAL_DB_ROOT_PASS}" <<SQL
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASS}';
+FLUSH PRIVILEGES;
+SQL
+  then
+    mysql --protocol=socket -uroot <<SQL
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASS}';
+FLUSH PRIVILEGES;
+SQL
+  fi
+
+  sed -i "s|^DB_PASSWORD=.*$|DB_PASSWORD=${DB_ROOT_PASS}|" /opt/breachrabbit/config/.env
+}
+
+print_access_summary() {
+  write_credentials_file "${SUMMARY_FILE}" "$(cat <<SUMMARY
 BreachRabbit Panel bootstrap complete.
 
 | Service | URL | Login | Password / Token |
 |---|---|---|---|
-| OpenLiteSpeed Admin | https://${host_ip}:7080 | admin | ${ols_admin_pass} |
-| Nginx Panel Proxy (placeholder) | http://${host_ip} | - | - |
-| MariaDB Root | localhost:3306 | root | ${db_root_pass} |
-| Adminer | ${adminer_url} | root | ${db_root_pass} |
-| Panel env file | /opt/breachrabbit/config/.env | NEXTAUTH_SECRET | ${app_secret} |
-| Reboot required | system status | - | ${reboot_required} |
+| OpenLiteSpeed Admin | https://${HOST_IP}:7080 | admin | ${OLS_ADMIN_PASS} |
+| Nginx Panel Proxy (placeholder) | http://${HOST_IP} | - | - |
+| MariaDB Root | localhost:3306 | root | ${DB_ROOT_PASS} |
+| Adminer | ${ADMINER_URL} | root | ${DB_ROOT_PASS} |
+| Panel env file | /opt/breachrabbit/config/.env | NEXTAUTH_SECRET | ${APP_SECRET} |
+| Reboot required | system status | - | ${REBOOT_REQUIRED} |
 
-Saved: ${summary_file}
+Saved: ${SUMMARY_FILE}
 SUMMARY
 )"
 
   printf '\n%s\n\n' "============================================================"
-  cat "$summary_file"
+  cat "${SUMMARY_FILE}"
   printf '%s\n' "============================================================"
 
-  if [[ "${reboot_required}" == "yes" ]]; then
+  if [[ "${REBOOT_REQUIRED}" == "yes" ]]; then
     warn "System reports reboot-required. Recommended: reboot now to load updated binaries."
   fi
 }
@@ -318,6 +399,8 @@ main() {
   install_phase_stack
   configure_initial_services
   deploy_panel_app
+  manual_set_mariadb_root_password
+  print_access_summary
 
   log "Done. Panel is deployed and running in background via breachrabbit-panel service."
 }
