@@ -186,7 +186,7 @@ export function PanelActions() {
 
         <p className="status">{domainState}</p>
         <p>
-          <Link href="/domains" className="linkInline">
+          <Link href="/domains" prefetch={false} className="linkInline">
             Open domains and certificates page →
           </Link>
         </p>
