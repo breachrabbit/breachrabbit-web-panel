@@ -182,6 +182,7 @@ NGINX
 NODE_ENV=production
 APP_PORT=3000
 APP_SECRET=${app_secret}
+NEXTAUTH_SECRET=${app_secret}
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_USER=root
@@ -244,7 +245,7 @@ BreachRabbit Panel bootstrap complete.
 | Nginx Panel Proxy (placeholder) | http://${host_ip} | - | - |
 | MariaDB Root | localhost:3306 | root | ${db_root_pass} |
 | Adminer | ${adminer_url} | root | ${db_root_pass} |
-| Panel env file | /opt/breachrabbit/config/.env | APP_SECRET | ${app_secret} |
+| Panel env file | /opt/breachrabbit/config/.env | NEXTAUTH_SECRET | ${app_secret} |
 | Reboot required | system status | - | ${reboot_required} |
 
 Saved: ${summary_file}

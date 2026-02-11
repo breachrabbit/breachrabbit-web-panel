@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { PanelActions } from './components/panel-actions';
 
 const requiredEnvVars = [
