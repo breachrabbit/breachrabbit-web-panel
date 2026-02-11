@@ -112,3 +112,15 @@
 - Updated domain creation API (`/api/domains/create`) so panel-bound domains explicitly include `adminer` and `filebrowser` snippets, preventing tool-link 404s on those domains.
 - Fixed MySQL operations: DB creation form now supports explicit password input, and `/api/databases/create` + `/api/databases/root-password` now include socket-auth fallback when TCP `root` access is disabled.
 - Updated `install/install.sh`: added main panel config path variables to `.env`, and wired `adminer/filebrowser` include snippets in the main Nginx site with safe placeholders before final setup.
+
+## 2026-02-11 (update 9)
+
+### RU
+- Добавлен новый API-эндпоинт `GET /api/logs` для получения логов по разделам: `OLS access/error`, `Nginx`, `PHP`, `System`, `Auth`.
+- Реализованы фильтрация по уровню (`all/error/warning/info`), поиск по тексту и ограничение количества строк (`limit`).
+- На главной странице панели добавлен раздел `Logs` с табами разделов, строкой поиска, фильтрацией и кнопкой `Refresh`.
+
+### EN
+- Added a new `GET /api/logs` endpoint to read logs by sections: `OLS access/error`, `Nginx`, `PHP`, `System`, `Auth`.
+- Implemented level filtering (`all/error/warning/info`), text search, and row limit control (`limit`).
+- Added a new `Logs` section on the main panel page with section tabs, search input, filters, and `Refresh` button.

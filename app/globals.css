@@ -240,3 +240,62 @@ th {
   border-radius: 12px;
   background: #091122;
 }
+
+.logsCard {
+  grid-column: 1 / -1;
+}
+
+.logSectionTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
+}
+
+.logsToolbar {
+  display: grid;
+  grid-template-columns: minmax(240px, 2fr) repeat(2, minmax(140px, 1fr)) auto;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.logsTableWrap {
+  max-height: 440px;
+  overflow: auto;
+}
+
+.logMessage {
+  white-space: normal;
+  word-break: break-word;
+}
+
+.logLevel {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 0.18rem 0.55rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.logLevel-info {
+  background: #20355f;
+  color: #d2e3ff;
+}
+
+.logLevel-warning {
+  background: #5f4a1d;
+  color: #ffe6ac;
+}
+
+.logLevel-error {
+  background: #5a1f1f;
+  color: #ffd5d5;
+}
+
+@media (max-width: 920px) {
+  .logsToolbar {
+    grid-template-columns: 1fr;
+  }
+}

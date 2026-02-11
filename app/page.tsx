@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { PanelActions } from './components/panel-actions';
+import { LogsExplorer } from './components/logs-explorer';
 
 const requiredEnvVars = [
   'DB_HOST',
@@ -60,6 +61,7 @@ export default function Home() {
         </article>
 
         <PanelActions />
+        <LogsExplorer />
       </section>
     </main>
   );
