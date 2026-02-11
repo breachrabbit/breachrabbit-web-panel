@@ -29,7 +29,7 @@ async function callApi(url: string, options?: RequestInit): Promise<ApiResult> {
 export function PanelActions() {
   const [domain, setDomain] = useState('');
   const [createDemoSite, setCreateDemoSite] = useState(true);
-  const [bindToPanel, setBindToPanel] = useState(true);
+  const [bindToPanel, setBindToPanel] = useState(false);
   const [issueCertificate, setIssueCertificate] = useState(true);
   const [database, setDatabase] = useState('');
 
@@ -149,8 +149,8 @@ export function PanelActions() {
       <article className="card">
         <h2>Add domain</h2>
         <p>
-          Create domain config, optionally bind to panel with automatic certificate, and track it in
-          domains registry.
+          Create domain config, create a test site folder by default, optionally bind domain to the
+          panel, and track certificate status in registry.
         </p>
 
         <form onSubmit={handleCreateDomain} className="stack">

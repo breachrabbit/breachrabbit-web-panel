@@ -67,3 +67,15 @@
 - Replaced the built-in panel file manager with FileBrowser (`https://filebrowser.org`): removed Next.js `/files` and `/api/files` routes, and updated the panel button to open FileBrowser.
 - Added automatic FileBrowser installation/configuration to installer as a dedicated `breachrabbit-filebrowser` systemd service with Nginx proxy on `/files/`.
 - Added FileBrowser access details (URL, login, password) to the final access summary, which is still printed at the very end.
+
+## 2026-02-11 (update 6)
+
+### RU
+- Исправлено поведение формы добавления домена: по умолчанию отключена привязка к панели (`Bind domain to panel`), чтобы при стандартном сценарии создавался тестовый статический сайт.
+- В API создания домена тестовый сайт и папка домена теперь создаются всегда при включенной опции `Create demo website`, независимо от режима привязки к панели.
+- В реестре доменов флаг `demoSite` теперь корректно отражает выбранную опцию формы без дополнительной фильтрации.
+
+### EN
+- Fixed the domain creation form behavior: `Bind domain to panel` is now disabled by default so the default flow creates a static demo site.
+- Updated domain creation API so demo site files and the site folder are created whenever `Create demo website` is enabled, regardless of panel binding mode.
+- Domain registry `demoSite` flag now directly reflects the selected form option without extra filtering.

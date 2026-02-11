@@ -95,13 +95,15 @@ export async function POST(request: NextRequest) {
 </html>
 `;
 
-  const plannedFiles = createDemoSite && !bindToPanel ? [domainConfigPath, enabledConfigPath, siteIndexPath] : [domainConfigPath, enabledConfigPath];
+  const plannedFiles = createDemoSite
+    ? [domainConfigPath, enabledConfigPath, siteIndexPath]
+    : [domainConfigPath, enabledConfigPath];
 
   if (!SYSTEM_CHANGES_ALLOWED) {
     await upsertDomainRegistry({
       domain,
       attachedToPanel: bindToPanel,
-      demoSite: createDemoSite && !bindToPanel,
+      demoSite: createDemoSite,
       certStatus: issueCertificate ? 'pending' : 'none',
       certIssuedAt: null,
       certExpiresAt: null,
@@ -128,7 +130,7 @@ export async function POST(request: NextRequest) {
     // Ignore if symlink exists or cannot be created due to permissions.
   }
 
-  if (createDemoSite && !bindToPanel) {
+  if (createDemoSite) {
     await mkdir(sitePath, { recursive: true });
     await writeFile(siteIndexPath, demoPage, 'utf8');
   }
@@ -167,7 +169,7 @@ export async function POST(request: NextRequest) {
   await upsertDomainRegistry({
     domain,
     attachedToPanel: bindToPanel,
-    demoSite: createDemoSite && !bindToPanel,
+    demoSite: createDemoSite,
     certStatus,
     certIssuedAt,
     certExpiresAt,
