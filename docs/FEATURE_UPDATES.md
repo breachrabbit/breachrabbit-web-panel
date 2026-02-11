@@ -124,3 +124,15 @@
 - Added a new `GET /api/logs` endpoint to read logs by sections: `OLS access/error`, `Nginx`, `PHP`, `System`, `Auth`.
 - Implemented level filtering (`all/error/warning/info`), text search, and row limit control (`limit`).
 - Added a new `Logs` section on the main panel page with section tabs, search input, filters, and `Refresh` button.
+
+## 2026-02-11 (update 10)
+
+### RU
+- Исправлен парсинг логов в `GET /api/logs`: теперь корректно обрабатываются строки, вставленные в формате `level\tsource\tmessage` (как из табличного экспорта), чтобы уровень/источник/сообщение отображались отдельно.
+- Добавлена нормализация входных строк логов: поддержан разбор как обычных переводов строки, так и экранированных `\\n`, а служебный заголовок `Level\tSource\tMessage` отфильтровывается.
+- Для неструктурированных строк сохранен fallback-режим: уровень по-прежнему определяется эвристикой, источник берется из текущего лог-файла.
+
+### EN
+- Fixed log parsing in `GET /api/logs`: now correctly handles lines provided in `level\tsource\tmessage` format (for example from table exports), so level/source/message are shown as separate fields.
+- Added input line normalization for logs: supports both regular newlines and escaped `\\n`, and filters out the helper header row `Level\tSource\tMessage`.
+- Preserved fallback mode for unstructured lines: level is still detected heuristically and source defaults to the current log file path.

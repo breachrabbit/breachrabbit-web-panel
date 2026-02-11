@@ -10,6 +10,12 @@ const execFileAsync = promisify(execFile);
 type LogSection = 'ols' | 'nginx' | 'php' | 'system' | 'auth';
 type LogLevel = 'info' | 'warning' | 'error';
 
+type ParsedLogEntry = {
+  source: string;
+  line: string;
+  level: LogLevel;
+};
+
 const BASE_LOG_SOURCES: Record<Exclude<LogSection, 'php'>, string[]> = {
   ols: ['/usr/local/lsws/logs/access.log', '/usr/local/lsws/logs/error.log'],
   nginx: ['/var/log/nginx/access.log', '/var/log/nginx/error.log'],
@@ -94,6 +100,42 @@ async function tailFile(path: string, lines: number) {
   }
 }
 
+function normalizeRawLines(rawText: string) {
+  return rawText
+    .split(/\n|\\n/g)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((line) => line.toLowerCase() !== 'level\tsource\tmessage');
+}
+
+function parsePossiblyStructuredLine(source: string, line: string): ParsedLogEntry {
+  const parts = line.split('\t');
+
+  if (parts.length >= 3) {
+    const possibleLevel = parts[0].trim().toLowerCase();
+    const possibleSource = parts[1].trim();
+    const possibleMessage = parts.slice(2).join('\t').trim();
+
+    if (
+      (possibleLevel === 'info' || possibleLevel === 'warning' || possibleLevel === 'error') &&
+      possibleSource.length > 0 &&
+      possibleMessage.length > 0
+    ) {
+      return {
+        source: possibleSource,
+        line: possibleMessage,
+        level: possibleLevel
+      };
+    }
+  }
+
+  return {
+    source,
+    line,
+    level: detectLevel(line)
+  };
+}
+
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const section = normalizeSection(params.get('section'));
@@ -106,18 +148,7 @@ export async function GET(request: NextRequest) {
 
   const entries = rawLogs
     .flatMap(({ source, text }) =>
-      text
-        .split('\n')
-        .map((line) => line.trim())
-        .filter(Boolean)
-        .map((line) => {
-          const level = detectLevel(line);
-          return {
-            source,
-            line,
-            level
-          };
-        })
+      normalizeRawLines(text).map((line) => parsePossiblyStructuredLine(source, line))
     )
     .filter((entry) => (levelFilter === 'all' ? true : entry.level === levelFilter))
     .filter((entry) => {
