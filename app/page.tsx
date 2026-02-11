@@ -1,3 +1,5 @@
+import { PanelActions } from './components/panel-actions';
+
 const requiredEnvVars = [
   'DB_HOST',
   'DB_PORT',
@@ -25,7 +27,7 @@ export default function Home() {
         <h1>Next.js panel bootstrap is running</h1>
         <p>
           This is the first deployable panel step after installer completion. Configure your
-          environment values and replace this page with your production dashboard modules.
+          environment values and use controls below to validate server operations.
         </p>
       </section>
 
@@ -54,6 +56,8 @@ export default function Home() {
             verify that Next.js responds.
           </p>
         </article>
+
+        <PanelActions />
       </section>
     </main>
   );

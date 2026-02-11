@@ -93,3 +93,51 @@ code {
   padding: 0.2rem 0.4rem;
   border-radius: 6px;
 }
+
+.stack {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.label-inline {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.input {
+  width: 100%;
+  background: #0b1324;
+  border: 1px solid #2a3b60;
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+}
+
+.checkbox-line {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--muted);
+}
+
+.button {
+  width: fit-content;
+  border: 1px solid #3f61b8;
+  background: #19306a;
+  color: #e9efff;
+  border-radius: 10px;
+  font-weight: 600;
+  padding: 0.55rem 0.9rem;
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.status {
+  margin-top: 0.8rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
