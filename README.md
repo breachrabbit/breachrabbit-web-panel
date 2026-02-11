@@ -37,7 +37,7 @@ sudo ./install/install.sh
 
 1. Обновляет систему Ubuntu.
 2. Устанавливает базовые утилиты (`curl`, `git`, `jq`, `ufw`, `fail2ban` и т.д.).
-3. Устанавливает стек: OpenLiteSpeed, Nginx, MariaDB, Redis, Certbot, Node.js, PHP-FPM, Adminer.
+3. Устанавливает стек: OpenLiteSpeed, Nginx, MariaDB, Redis, Certbot, Node.js, PHP-FPM, Adminer, FileBrowser.
 4. Настраивает сервисы и разворачивает панель Next.js как systemd-сервис.
 5. **В самом конце** предлагает вручную задать пароль `root` для MariaDB.
 6. **В самом конце** выводит итоговую таблицу всех доступов и сохраняет её в файл.
@@ -50,8 +50,7 @@ sudo ./install/install.sh
 ### Инструменты панели
 
 - `/adminer` — web-интерфейс MariaDB (кнопка **Open Adminer** на главной панели).
-- `/files` — встроенный файловый менеджер для папки сайтов (`PANEL_SITES_ROOT`).
-- `/api/files` — API просмотра/скачивания файлов внутри разрешенного корня.
+- `/files/` — FileBrowser (https://filebrowser.org) для папки сайтов (`/opt/breachrabbit/sites`).
 
 ### Лог добавленных функций
 
@@ -92,7 +91,7 @@ sudo ./install/install.sh
 
 1. Updates Ubuntu packages.
 2. Installs base utilities (`curl`, `git`, `jq`, `ufw`, `fail2ban`, etc.).
-3. Installs stack components: OpenLiteSpeed, Nginx, MariaDB, Redis, Certbot, Node.js, PHP-FPM, Adminer.
+3. Installs stack components: OpenLiteSpeed, Nginx, MariaDB, Redis, Certbot, Node.js, PHP-FPM, Adminer, FileBrowser.
 4. Configures services and deploys the Next.js panel as a systemd service.
 5. **At the very end**, asks for manual MariaDB `root` password setup.
 6. **At the very end**, prints all access credentials and saves them into a summary file.
@@ -105,8 +104,7 @@ sudo ./install/install.sh
 ### Panel tools
 
 - `/adminer` — MariaDB web UI (via **Open Adminer** button on main panel).
-- `/files` — built-in file manager for the sites root (`PANEL_SITES_ROOT`).
-- `/api/files` — API endpoint for browsing/downloading files inside allowed root.
+- `/files/` — FileBrowser (https://filebrowser.org) for the sites root (`/opt/breachrabbit/sites`).
 
 ### Added features log
 

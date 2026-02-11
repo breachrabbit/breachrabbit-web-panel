@@ -146,6 +146,9 @@ DB_ROOT_PASS=""
 INITIAL_DB_ROOT_PASS=""
 APP_SECRET=""
 ADMINER_URL=""
+FILEBROWSER_URL=""
+FILEBROWSER_ADMIN_USER="admin"
+FILEBROWSER_ADMIN_PASS=""
 REBOOT_REQUIRED="no"
 HOST_IP=""
 SUMMARY_FILE="/root/breachrabbit-install-summary.txt"
@@ -157,6 +160,7 @@ configure_initial_services() {
   DB_ROOT_PASS="$(random_password)"
   INITIAL_DB_ROOT_PASS="${DB_ROOT_PASS}"
   APP_SECRET="$(random_password)$(random_password)"
+  FILEBROWSER_ADMIN_PASS="$(random_password)"
   REBOOT_REQUIRED="no"
 
   # OpenLiteSpeed admin password
@@ -239,12 +243,17 @@ ENV
         adminer_script="/usr/share/adminer/adminer/index.php"
       fi
 
-      ADMINER_URL="http://${HOST_IP}/adminer"
+      ADMINER_URL="http://${HOST_IP}/adminer/"
       cat > /etc/nginx/snippets/adminer.conf <<SNIP
-location /adminer {
+location = /adminer {
+    return 302 /adminer/;
+}
+
+location = /adminer/ {
     include snippets/fastcgi-php.conf;
     fastcgi_param SCRIPT_FILENAME ${adminer_script};
     fastcgi_param SCRIPT_NAME /adminer;
+    fastcgi_param QUERY_STRING \$query_string;
     fastcgi_pass unix:${php_socket};
 }
 SNIP
@@ -257,14 +266,96 @@ SNIP
       nginx -t
       systemctl reload nginx
 
-      if ! curl -fsS "http://127.0.0.1/adminer" >/dev/null 2>&1; then
-        ADMINER_URL="Configured, but local check failed (http://127.0.0.1/adminer)"
+      if ! curl -fsS "http://127.0.0.1/adminer/" >/dev/null 2>&1; then
+        ADMINER_URL="Configured, but local check failed (http://127.0.0.1/adminer/)"
       fi
     else
       ADMINER_URL="Installed, but php-fpm socket not found"
     fi
   else
     ADMINER_URL="Not installed"
+  fi
+
+  # FileBrowser (https://filebrowser.org) setup
+  if command -v filebrowser >/dev/null 2>&1; then
+    :
+  else
+    curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
+  fi
+
+  if command -v filebrowser >/dev/null 2>&1; then
+    local filebrowser_bin
+    filebrowser_bin="$(command -v filebrowser)"
+
+    install -d -m 750 /opt/breachrabbit/filebrowser/{config,data}
+
+    filebrowser config init \
+      --database /opt/breachrabbit/filebrowser/data/filebrowser.db \
+      --address 127.0.0.1 \
+      --port 8081 \
+      --root /opt/breachrabbit/sites
+
+    if ! filebrowser users update "${FILEBROWSER_ADMIN_USER}" \
+      --password "${FILEBROWSER_ADMIN_PASS}" \
+      --database /opt/breachrabbit/filebrowser/data/filebrowser.db \
+      --perm.admin >/dev/null 2>&1
+    then
+      filebrowser users add "${FILEBROWSER_ADMIN_USER}" "${FILEBROWSER_ADMIN_PASS}" \
+        --database /opt/breachrabbit/filebrowser/data/filebrowser.db \
+        --perm.admin
+    fi
+
+    cat > /etc/systemd/system/breachrabbit-filebrowser.service <<SERVICE
+[Unit]
+Description=BreachRabbit FileBrowser
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/breachrabbit/filebrowser
+ExecStart=${filebrowser_bin} \
+  --database /opt/breachrabbit/filebrowser/data/filebrowser.db \
+  --address 127.0.0.1 \
+  --port 8081 \
+  --root /opt/breachrabbit/sites
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+SERVICE
+
+    cat > /etc/nginx/snippets/filebrowser.conf <<'SNIP'
+location /files/ {
+    proxy_pass http://127.0.0.1:8081/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+location = /files {
+    return 302 /files/;
+}
+SNIP
+
+    if ! grep -q "include /etc/nginx/snippets/filebrowser.conf;" /etc/nginx/sites-available/breachrabbit-panel.conf; then
+      sed -i '/server_name _;/a \
+    include /etc/nginx/snippets/filebrowser.conf;' /etc/nginx/sites-available/breachrabbit-panel.conf
+    fi
+
+    nginx -t
+    systemctl reload nginx
+
+    systemctl daemon-reload
+    systemctl enable --now breachrabbit-filebrowser
+
+    FILEBROWSER_URL="http://${HOST_IP}/files/"
+  else
+    FILEBROWSER_URL="Not installed (filebrowser binary unavailable)"
   fi
 
   if [[ -f /var/run/reboot-required ]]; then
@@ -331,6 +422,7 @@ BreachRabbit Panel bootstrap complete.
 | Nginx Panel Proxy (placeholder) | http://${HOST_IP} | - | - |
 | MariaDB Root | localhost:3306 | root | ${DB_ROOT_PASS} |
 | Adminer | ${ADMINER_URL} | root | ${DB_ROOT_PASS} |
+| FileBrowser | ${FILEBROWSER_URL} | ${FILEBROWSER_ADMIN_USER} | ${FILEBROWSER_ADMIN_PASS} |
 | Panel env file | /opt/breachrabbit/config/.env | NEXTAUTH_SECRET | ${APP_SECRET} |
 | Reboot required | system status | - | ${reboot_note} |
 

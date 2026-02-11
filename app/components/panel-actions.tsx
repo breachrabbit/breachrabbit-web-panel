@@ -135,13 +135,13 @@ export function PanelActions() {
 
       <article className="card">
         <h2>Tools</h2>
-        <p>Quick access to Adminer and встроенный файловый менеджер.</p>
+        <p>Quick access to Adminer and FileBrowser (https://filebrowser.org).</p>
         <div className="buttonRow">
           <a className="button" href="/adminer" target="_blank" rel="noreferrer">
             Open Adminer
           </a>
-          <Link className="button" href="/files" prefetch={false}>
-            Open file manager
+          <Link className="button" href="/files/" prefetch={false}>
+            Open FileBrowser
           </Link>
         </div>
       </article>

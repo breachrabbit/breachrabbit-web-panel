@@ -53,3 +53,17 @@
 ### EN
 - In `install/install.sh`, the reboot recommendation is now embedded into the `Reboot required` row inside the final access table, so all critical access details and statuses are shown strictly at the very end in one block.
 - The final `Done...` log line was moved before the access summary: now only the final access block is printed after it.
+
+## 2026-02-11 (update 5)
+
+### RU
+- Исправлена конфигурация Adminer в `install/install.sh`: добавлен явный редирект `/adminer -> /adminer/`, выделен точный `location = /adminer/` и обновлена проверка доступности через `http://127.0.0.1/adminer/`, чтобы убрать 404 на открытии.
+- Встроенный файловый менеджер панели заменен на FileBrowser (`https://filebrowser.org`): удалены маршруты `/files` и `/api/files` из Next.js, в панели кнопка теперь открывает FileBrowser.
+- В установщик добавлена автоматическая установка/настройка FileBrowser как отдельного systemd-сервиса `breachrabbit-filebrowser` с проксированием через Nginx на `/files/`.
+- Доступы FileBrowser (URL, логин и пароль) добавлены в финальную таблицу доступов, которая по-прежнему выводится в самом конце.
+
+### EN
+- Fixed Adminer config in `install/install.sh`: added explicit `/adminer -> /adminer/` redirect, exact `location = /adminer/` block, and updated availability check via `http://127.0.0.1/adminer/` to eliminate 404 on open.
+- Replaced the built-in panel file manager with FileBrowser (`https://filebrowser.org`): removed Next.js `/files` and `/api/files` routes, and updated the panel button to open FileBrowser.
+- Added automatic FileBrowser installation/configuration to installer as a dedicated `breachrabbit-filebrowser` systemd service with Nginx proxy on `/files/`.
+- Added FileBrowser access details (URL, login, password) to the final access summary, which is still printed at the very end.
