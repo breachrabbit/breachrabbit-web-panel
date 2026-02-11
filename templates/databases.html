@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Databases</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Databases</h1>
+
+    <section class="card">
+      <h2>Create database and user</h2>
+      <form id="create-form">
+        <label>DB name <input type="text" name="db_name" required /></label>
+        <label>User <input type="text" name="user" required /></label>
+        <label>Password <input type="password" name="password" required minlength="8" /></label>
+        <button type="submit">Create</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Managed databases</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>db_name</th>
+            <th>user</th>
+            <th>created_at</th>
+            <th>actions</th>
+          </tr>
+        </thead>
+        <tbody id="db-body"></tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>Audit log</h2>
+      <table>
+        <thead>
+        <tr>
+          <th>action</th>
+          <th>db_name</th>
+          <th>db_user</th>
+          <th>details</th>
+          <th>created_at</th>
+        </tr>
+        </thead>
+        <tbody id="audit-body"></tbody>
+      </table>
+    </section>
+
+    <p id="status"></p>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
