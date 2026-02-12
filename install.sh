@@ -30,9 +30,9 @@ fi
 
 # 1. Update system
 print_info "Step 1/10: Updating system..."
-apt-get update && apt-get upgrade -y
-#apt-get install -y curl wget gnupg2 lsb-release ca-certificates software-properties-common curl
-#print_success "System updated" 
+apt-get update # && apt-get upgrade -y
+apt-get install -y curl wget gnupg2 lsb-release ca-certificates software-properties-common curl
+print_success "System updated" 
 
 # 2. Add repositories
 print_info "Step 2/10: Adding repositories..."
@@ -40,8 +40,8 @@ print_info "Step 2/10: Adding repositories..."
 # PHP (Ondrej Sury)
 add-apt-repository ppa:ondrej/php -y
 
-# MariaDB 10.11
-curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | bash -s -- --mariadb-server-version="mariadb-10.11"
+# MariaDB 11.08
+curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | bash -s -- --mariadb-server-version="mariadb-11.08"
 
 # OpenLiteSpeed 1.8
 wget -O - https://rpms.litespeedtech.com/debian/enable_lst_debian_repo.sh | bash
