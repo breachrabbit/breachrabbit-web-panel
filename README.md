@@ -1,411 +1,391 @@
-# Breach Rabbit HostPanel Pro
+# 🐇 Breach Rabbit HostPanel Pro
 
 Modern hosting control panel built with Next.js 14, optimized for WordPress sites running on OpenLiteSpeed.
 
-## Features
+## ✨ Features
 
-- 🚀 **Sites Management** - Create and manage WordPress, static, and proxy sites
-- 💾 **Database Manager** - Full MySQL/MariaDB and PostgreSQL management
-- 🔐 **SSL Automation** - Automatic Let's Encrypt certificate management
-- 📁 **File Manager** - Modern web-based file browser and editor
-- 🔥 **Firewall Control** - Manage UFW/nftables rules via GUI
-- ⏰ **Cron Manager** - Schedule and manage cron jobs
-- 📊 **Monitoring** - Real-time server and site metrics
+- 🚀 **Sites Management** - WordPress, static, PHP, and proxy sites
+- 💾 **Database Manager** - MySQL/MariaDB and PostgreSQL
+- 🔐 **SSL Automation** - Let's Encrypt with auto-renewal
+- 📁 **File Manager** - Web-based file browser and editor
+- 🔥 **Firewall Control** - UFW/nftables GUI management
+- ⏰ **Cron Manager** - Schedule and manage tasks
+- 📊 **Monitoring** - Real-time server metrics
 - 📝 **Logs Viewer** - Centralized log management
-- 🖥️ **Web Terminal** - Browser-based SSH terminal
-- 💾 **Backups** - Automated Restic-based backup system
+- 👤 **Authentication** - NextAuth with role-based access
 
-## Tech Stack
+## 🔧 Tech Stack
 
 ### Frontend
-- **Next.js 14** (App Router)
-- **TypeScript**
-- **Tailwind CSS**
-- **shadcn/ui** components
-- **TanStack Query** for data fetching
-- **Zustand** for global state
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS + shadcn/ui
+- TanStack Query
 
 ### Backend
-- **Next.js API Routes**
-- **Prisma** ORM
-- **PostgreSQL** database
-- **Redis** for caching
-- **JWT** authentication
+- Next.js API Routes
+- Prisma ORM
+- PostgreSQL 16
+- Redis 7
 
-### Server Services
-- **OpenLiteSpeed** web server
-- **Nginx** reverse proxy
-- **MariaDB/PostgreSQL** databases
-- **Restic** backups
-- **acme.sh** SSL management
-- **UFW** firewall
+### Server
+- OpenLiteSpeed 1.8
+- Nginx 1.28
+- MariaDB 11.4
+- PHP 8.3/8.4
+- Restic (backups)
+- acme.sh (SSL)
 
-## Prerequisites
+## 📋 Prerequisites
 
-- **Node.js** 20.x or higher
-- **PostgreSQL** 14+ running locally or via Docker
-- **Redis** 7+ running locally or via Docker
-- **OpenLiteSpeed** 1.7+ (for production server)
+- Ubuntu 22.04 LTS or newer
+- Root access
+- At least 4GB RAM
+- 50GB+ free disk space
 
-## Quick Start
+## 🚀 Quick Start
 
-### 1. Clone the repository
+### 1. Download Project
 
-\`\`\`bash
+```bash
+# Clone or download
 git clone <repository-url>
 cd breachrabbit-hostpanel-pro
-\`\`\`
+```
 
-### 2. Install dependencies
+### 2. Run Installation Script
 
-\`\`\`bash
+```bash
+chmod +x install.sh
+sudo ./install.sh
+```
+
+The script will automatically:
+- Install all required packages
+- Configure PostgreSQL, MariaDB, Redis
+- Setup OpenLiteSpeed and Nginx
+- Install Node.js and dependencies
+- Create database schema
+- Seed admin user
+- Build and start the application
+
+**⏱️ Installation takes ~10-15 minutes**
+
+### 3. Access Panel
+
+After installation completes:
+
+```
+Panel URL: http://YOUR_SERVER_IP:3000
+Login: admin@breachrabbit.pro
+Password: admin123
+```
+
+**⚠️ Change the default password immediately!**
+
+## 🔧 Manual Setup (Development)
+
+If you want to run in development mode:
+
+### 1. Install Dependencies
+
+```bash
 npm install
-\`\`\`
+```
 
-### 3. Setup environment variables
+### 2. Configure Environment
 
-\`\`\`bash
+```bash
 cp .env.example .env
-\`\`\`
+nano .env
+```
 
-Edit `.env` and configure:
-
-\`\`\`env
-# Database
-DATABASE_URL="postgresql://hostpanel:password@localhost:5432/hostpanel"
-
-# Redis
-REDIS_URL="redis://localhost:6379"
-
-# NextAuth
-NEXTAUTH_URL="http://localhost:3000"
+Required variables:
+```env
+DATABASE_URL="postgresql://br_admin:password@localhost:5432/breachrabbit"
 NEXTAUTH_SECRET="generate-with-openssl-rand-base64-32"
+```
 
-# OpenLiteSpeed API (configure later)
-OLS_API_URL="http://localhost:7080"
-OLS_API_USER="admin"
-OLS_API_PASS="your-admin-password"
-\`\`\`
+### 3. Setup Database
 
-### 4. Start PostgreSQL and Redis (via Docker)
+```bash
+# Start PostgreSQL (if not running)
+sudo systemctl start postgresql
 
-\`\`\`bash
-# PostgreSQL
-docker run -d \
-  --name hostpanel-postgres \
-  -e POSTGRES_USER=hostpanel \
-  -e POSTGRES_PASSWORD=password \
-  -e POSTGRES_DB=hostpanel \
-  -p 5432:5432 \
-  postgres:16
+# Create database
+sudo -u postgres psql -c "CREATE DATABASE breachrabbit;"
+sudo -u postgres psql -c "CREATE USER br_admin WITH PASSWORD 'your_password';"
 
-# Redis
-docker run -d \
-  --name hostpanel-redis \
-  -p 6379:6379 \
-  redis:7-alpine
-\`\`\`
+# Grant permissions (PostgreSQL 15+ fix)
+sudo -u postgres psql -d breachrabbit -c "ALTER SCHEMA public OWNER TO br_admin;"
+sudo -u postgres psql -d breachrabbit -c "GRANT ALL ON SCHEMA public TO br_admin;"
 
-### 5. Initialize database
+# Push schema
+npx prisma db push
 
-\`\`\`bash
-# Generate Prisma Client
-npx prisma generate
+# Seed admin user
+npm run db:seed
+```
 
-# Run migrations
-npx prisma migrate dev
+### 4. Start Development Server
 
-# (Optional) Open Prisma Studio to view data
-npx prisma studio
-\`\`\`
-
-### 6. Start development server
-
-\`\`\`bash
+```bash
 npm run dev
-\`\`\`
+```
 
-Visit [http://localhost:3000](http://localhost:3000)
+Open http://localhost:3000
 
-## Project Structure
+## 🐛 Known Issues & Fixes
 
-\`\`\`
+### Issue 1: PostgreSQL Permission Denied
+
+**Problem:** `permission denied for schema public`
+
+**Cause:** PostgreSQL 15+ doesn't grant schema permissions by default
+
+**Fix:**
+```bash
+sudo -u postgres psql -d breachrabbit -c "ALTER SCHEMA public OWNER TO br_admin;"
+sudo -u postgres psql -d breachrabbit -c "GRANT ALL ON SCHEMA public TO br_admin;"
+```
+
+### Issue 2: 404 on Root URL
+
+**Problem:** Accessing server IP shows 404
+
+**Cause:** Missing `app/page.tsx`
+
+**Fix:** Already included - redirects to `/dashboard`
+
+### Issue 3: Tailwind Styles Not Loading
+
+**Problem:** Dark background but no component styling
+
+**Fixes Applied:**
+1. ✅ `postcss.config.js` created
+2. ✅ `tailwind.config.js` content paths expanded
+3. ✅ `app/layout.tsx` imports `globals.css`
+4. ✅ `globals.css` has correct Tailwind directives
+
+### Issue 4: NextAuth Not Working
+
+**Fixes Applied:**
+1. ✅ `lib/auth.ts` - NextAuth configuration
+2. ✅ `middleware.ts` - Route protection
+3. ✅ `app/api/auth/[...nextauth]/route.ts` - API endpoint
+4. ✅ `app/login/page.tsx` - Login page
+5. ✅ `prisma/seed.ts` - Admin user creation
+
+## 📁 Project Structure
+
+```
 breachrabbit-hostpanel-pro/
 ├── app/
-│   ├── (auth)/              # Authentication pages
-│   ├── (dashboard)/         # Dashboard pages
-│   │   ├── dashboard/       # Main dashboard
-│   │   ├── sites/          # Sites management
-│   │   ├── databases/      # Database management
-│   │   ├── files/          # File manager
-│   │   ├── ssl/            # SSL certificates
-│   │   ├── backups/        # Backup management
-│   │   ├── firewall/       # Firewall rules
-│   │   ├── cron/           # Cron jobs
-│   │   ├── monitoring/     # Server monitoring
-│   │   ├── logs/           # Logs viewer
-│   │   ├── terminal/       # Web terminal
-│   │   └── settings/       # Settings
-│   ├── api/                # API routes
-│   │   ├── auth/          # Authentication endpoints
-│   │   ├── sites/         # Sites API
-│   │   ├── databases/     # Databases API
-│   │   ├── files/         # Files API
-│   │   └── ...            # Other API endpoints
-│   ├── globals.css        # Global styles
-│   └── layout.tsx         # Root layout
+│   ├── (dashboard)/
+│   │   ├── dashboard/          # Main dashboard
+│   │   │   ├── sites/         # Sites management
+│   │   │   └── databases/     # Database management
+│   │   └── layout.tsx         # Dashboard layout
+│   ├── login/
+│   │   └── page.tsx           # Login page
+│   ├── api/
+│   │   └── auth/
+│   │       └── [...nextauth]/  # NextAuth API
+│   ├── globals.css
+│   ├── layout.tsx             # Root layout
+│   └── page.tsx               # Redirect to dashboard
 ├── components/
-│   ├── ui/                # shadcn/ui components
-│   ├── sidebar.tsx        # Main sidebar
-│   ├── header.tsx         # Header with user menu
-│   └── providers.tsx      # React providers
+│   ├── ui/                    # shadcn/ui components
+│   ├── sidebar.tsx
+│   ├── header.tsx
+│   └── providers.tsx
 ├── lib/
-│   ├── services/          # Business logic
-│   ├── integrations/      # External API clients
-│   ├── prisma.ts          # Prisma client
-│   ├── redis.ts           # Redis client
-│   └── utils.ts           # Utility functions
+│   ├── auth.ts               # NextAuth config
+│   ├── prisma.ts
+│   ├── redis.ts
+│   └── utils.ts
 ├── prisma/
-│   ├── schema.prisma      # Database schema
-│   └── migrations/        # Database migrations
-├── hooks/                 # Custom React hooks
-├── .env.example          # Environment variables template
-├── next.config.js        # Next.js configuration
-├── tailwind.config.js    # Tailwind CSS configuration
-├── tsconfig.json         # TypeScript configuration
-└── package.json          # Dependencies
-\`\`\`
+│   ├── schema.prisma         # Database schema
+│   └── seed.ts               # Admin user seed
+├── middleware.ts             # Route protection
+├── install.sh               # Auto installation
+└── package.json
+```
 
-## Development Workflow
+## 🔐 Security
 
-### 1. Database Changes
+### Default Credentials
 
-When modifying the Prisma schema:
+**Change these immediately after installation:**
 
-\`\`\`bash
-# Create a new migration
-npx prisma migrate dev --name description-of-changes
+```
+Panel:
+  - Email: admin@breachrabbit.pro
+  - Password: admin123
 
-# Reset database (WARNING: deletes all data)
-npx prisma migrate reset
-\`\`\`
+OpenLiteSpeed Admin:
+  - Username: admin
+  - Password: br_ols_admin_2026
 
-### 2. API Development
+PostgreSQL:
+  - User: br_admin
+  - Password: br_secure_pass_2026
 
-API routes are in `app/api/`:
+MariaDB:
+  - User: root
+  - Password: br_mysql_root_2026
+```
 
-\`\`\`typescript
-// app/api/sites/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+### Firewall Rules
 
-export async function GET(req: NextRequest) {
-  const sites = await prisma.site.findMany();
-  return NextResponse.json(sites);
-}
+The installation script configures UFW with:
+- Port 22 (SSH)
+- Port 80 (HTTP)
+- Port 443 (HTTPS)
+- Port 3000 (Panel)
+- Port 7080 (OLS Admin)
 
-export async function POST(req: NextRequest) {
-  const data = await req.json();
-  const site = await prisma.site.create({ data });
-  return NextResponse.json(site);
-}
-\`\`\`
+## 📝 Environment Variables
 
-### 3. Adding New Pages
+See `.env.example` for all available options.
 
-Pages use Next.js App Router:
+Required:
+```env
+DATABASE_URL      # PostgreSQL connection
+NEXTAUTH_SECRET   # JWT secret (32+ chars)
+```
 
-\`\`\`typescript
-// app/(dashboard)/dashboard/new-page/page.tsx
-export default function NewPage() {
-  return (
-    <div>
-      <h1>New Page</h1>
-    </div>
-  );
-}
-\`\`\`
+Optional:
+```env
+REDIS_URL         # Redis connection
+OLS_API_URL       # OpenLiteSpeed API
+AEZA_API_KEY      # Aeza API integration
+SMTP_*            # Email notifications
+TELEGRAM_*        # Telegram notifications
+```
 
-### 4. Using React Query for Data Fetching
+## 🚀 Production Deployment
 
-\`\`\`typescript
-"use client";
-import { useQuery } from '@tanstack/react-query';
+### Using PM2 (Recommended)
 
-export default function SitesPage() {
-  const { data: sites, isLoading } = useQuery({
-    queryKey: ['sites'],
-    queryFn: async () => {
-      const res = await fetch('/api/sites');
-      return res.json();
-    },
-  });
-
-  if (isLoading) return <div>Loading...</div>;
-
-  return (
-    <div>
-      {sites?.map(site => (
-        <div key={site.id}>{site.domain}</div>
-      ))}
-    </div>
-  );
-}
-\`\`\`
-
-## Production Deployment
-
-### Server Setup
-
-1. **Install Dependencies**
-
-\`\`\`bash
-# Update system
-sudo apt update && sudo apt upgrade -y
-
-# Install Node.js 20
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash -
-sudo apt install -y nodejs
-
-# Install PostgreSQL
-sudo apt install -y postgresql postgresql-contrib
-
-# Install Redis
-sudo apt install -y redis-server
-
-# Install OpenLiteSpeed
-wget -O - http://rpms.litespeedtech.com/debian/enable_lst_debian_repo.sh | sudo bash
-sudo apt update
-sudo apt install -y openlitespeed lsphp82
-
-# Install Nginx
-sudo apt install -y nginx
-
-# Install Restic
-sudo apt install -y restic
-
-# Install acme.sh
-curl https://get.acme.sh | sh
-\`\`\`
-
-2. **Deploy Application**
-
-\`\`\`bash
-# Clone repository
-cd /opt
-sudo git clone <repository-url> panel
-cd panel
-
-# Install dependencies
-npm install
-
-# Build application
+```bash
+# Build
 npm run build
 
-# Install PM2
-sudo npm install -g pm2
-
-# Start application
-pm2 start npm --name "hostpanel" -- start
-
-# Setup PM2 to start on boot
-pm2 startup
+# Start with PM2
+pm2 start npm --name "breachrabbit-panel" -- start
 pm2 save
-\`\`\`
+pm2 startup
+```
 
-3. **Configure Nginx Reverse Proxy**
+### Using systemd
 
-\`\`\`nginx
-# /etc/nginx/sites-available/hostpanel
-server {
-    listen 80;
-    server_name panel.example.com;
+Create `/etc/systemd/system/breachrabbit-panel.service`:
 
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-\`\`\`
+```ini
+[Unit]
+Description=Breach Rabbit HostPanel Pro
+After=network.target
 
-Enable the site:
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/breachrabbit-hostpanel-pro
+ExecStart=/usr/bin/npm start
+Restart=on-failure
 
-\`\`\`bash
-sudo ln -s /etc/nginx/sites-available/hostpanel /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl reload nginx
-\`\`\`
+[Install]
+WantedBy=multi-user.target
+```
 
-4. **Setup SSL**
+Enable and start:
+```bash
+systemctl enable breachrabbit-panel
+systemctl start breachrabbit-panel
+```
 
-\`\`\`bash
-sudo certbot --nginx -d panel.example.com
-\`\`\`
+## 🛠️ Development
 
-## Environment Variables Reference
+### Database Changes
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@localhost:5432/db` |
-| `REDIS_URL` | Redis connection string | `redis://localhost:6379` |
-| `NEXTAUTH_URL` | Application URL | `https://panel.example.com` |
-| `NEXTAUTH_SECRET` | JWT secret (32+ characters) | Generated with `openssl rand -base64 32` |
-| `OLS_API_URL` | OpenLiteSpeed API URL | `http://localhost:7080` |
-| `OLS_API_USER` | OLS admin username | `admin` |
-| `OLS_API_PASS` | OLS admin password | `secure-password` |
-| `SERVER_ROOT` | Web root directory | `/var/www` |
-| `BACKUP_ROOT` | Backups directory | `/var/backups/hostpanel` |
-| `ACME_EMAIL` | Email for SSL certificates | `admin@example.com` |
+```bash
+# Make changes to prisma/schema.prisma
 
-## Troubleshooting
+# Push to database
+npx prisma db push
 
-### Database Connection Issues
+# Or create migration
+npx prisma migrate dev --name description
+```
 
-\`\`\`bash
+### Add Admin User Manually
+
+```bash
+npm run db:seed
+```
+
+Or via Prisma Studio:
+```bash
+npx prisma studio
+```
+
+## 📚 Documentation
+
+- [Next.js Docs](https://nextjs.org/docs)
+- [Prisma Docs](https://www.prisma.io/docs)
+- [NextAuth Docs](https://next-auth.js.org)
+- [OpenLiteSpeed Docs](https://openlitespeed.org/kb/)
+
+## 🐛 Troubleshooting
+
+### Panel Won't Start
+
+```bash
+# Check logs
+pm2 logs breachrabbit-panel
+
+# Or if running with npm
+npm run dev
+```
+
+### Database Connection Failed
+
+```bash
 # Check PostgreSQL is running
 sudo systemctl status postgresql
 
 # Test connection
-psql -U hostpanel -h localhost -d hostpanel
-\`\`\`
+psql -U br_admin -d breachrabbit -h localhost
+```
 
-### Redis Connection Issues
+### Styles Not Loading
 
-\`\`\`bash
-# Check Redis is running
-sudo systemctl status redis
-
-# Test connection
-redis-cli ping
-\`\`\`
+```bash
+# Clear Next.js cache
+rm -rf .next
+npm run dev
+```
 
 ### Port Already in Use
 
-\`\`\`bash
-# Find process using port 3000
+```bash
+# Find process on port 3000
 sudo lsof -i :3000
 
-# Kill the process
+# Kill process
 sudo kill -9 <PID>
-\`\`\`
+```
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## License
-
-MIT License - see LICENSE file for details
-
-## Support
+## 📞 Support
 
 For issues and questions:
-- GitHub Issues: <repository-url>/issues
-- Documentation: <docs-url>
+- GitHub Issues: [repository-url]/issues
+- Documentation: [docs-url]
+
+## 📄 License
+
+MIT License
+
+---
+
+**Made with 🐇 by Breach Rabbit Team**
