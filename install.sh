@@ -31,8 +31,8 @@ fi
 # 1. Update system
 print_info "Step 1/10: Updating system..."
 apt-get update && apt-get upgrade -y
-apt-get install -y curl wget gnupg2 lsb-release ca-certificates software-properties-common curl
-print_success "System updated"
+#apt-get install -y curl wget gnupg2 lsb-release ca-certificates software-properties-common curl
+#print_success "System updated" 
 
 # 2. Add repositories
 print_info "Step 2/10: Adding repositories..."
@@ -42,36 +42,6 @@ add-apt-repository ppa:ondrej/php -y
 
 # MariaDB 10.11
 curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | bash -s -- --mariadb-server-version="mariadb-10.11"
-
-# 1. Скачиваем и добавляем официальный репозиторий MySQL
-wget -c https://dev.mysql.com/get/mysql-apt-config_0.8.33-1_all.deb
-dpkg -i mysql-apt-config_0.8.33-1_all.deb
-
-# ВНИМАНИЕ: Во время установки появится синий экран конфигурации.
-# Для автоматической установки версии 9.x нужно заранее передать параметры.
-# Можно сделать так (автоматический выбор MySQL 9.x):
-debconf-set-selections <<< "mysql-apt-config mysql-apt-config/select-server select mysql-innovation"
-debconf-set-selections <<< "mysql-apt-config mysql-apt-config/select-product select Ok"
-dpkg -i mysql-apt-config_0.8.33-1_all.deb
-
-# 2. Обновляем список пакетов
-apt update
-
-# 3. Устанавливаем MySQL сервер
-apt install -y mysql-server
-
-# 4. Запускаем и добавляем в автозагрузку
-systemctl enable mysql
-systemctl start mysql
-
-# 5. Безопасная настройка (задаём пароль root)
-MYSQL_ROOT_PASS=$(openssl rand -base64 18)
-mysql <<EOF
-ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASS}';
-DELETE FROM mysql.user WHERE User='';
-DROP DATABASE IF EXISTS test;
-FLUSH PRIVILEGES;
-EOF
 
 # OpenLiteSpeed 1.8
 wget -O - https://rpms.litespeedtech.com/debian/enable_lst_debian_repo.sh | bash
