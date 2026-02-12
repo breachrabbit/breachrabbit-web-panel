@@ -40,3 +40,4 @@ pm2 delete breachrabbit-panel 2>/dev/null || true
 pm2 start npm --name "breachrabbit-panel" -- run start
 
 echo "✅ Готово! Проверь теперь: http://твой-ip:3000/"
+1
