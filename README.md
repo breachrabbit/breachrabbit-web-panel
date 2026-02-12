@@ -53,7 +53,7 @@ Modern hosting control panel built with Next.js 14, optimized for WordPress site
 
 \`\`\`bash
 git clone <repository-url>
-cd hostpanel-pro
+cd breachrabbit-hostpanel-pro
 \`\`\`
 
 ### 2. Install dependencies
@@ -130,7 +130,7 @@ Visit [http://localhost:3000](http://localhost:3000)
 ## Project Structure
 
 \`\`\`
-hostpanel-pro/
+breachrabbit-hostpanel-pro/
 ├── app/
 │   ├── (auth)/              # Authentication pages
 │   ├── (dashboard)/         # Dashboard pages

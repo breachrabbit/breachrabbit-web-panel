@@ -89,7 +89,7 @@ export function Sidebar() {
       {/* Logo */}
       <div className="flex h-16 items-center border-b px-6">
         <Globe className="mr-2 h-6 w-6 text-primary" />
-        <span className="text-lg font-bold">HostPanel Pro</span>
+        <span className="text-lg font-bold">Breach Rabbit HostPanel Pro</span>
       </div>
 
       {/* Navigation */}

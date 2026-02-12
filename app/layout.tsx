@@ -6,7 +6,7 @@ import { Providers } from "@/components/providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "HostPanel Pro - Modern Hosting Control Panel",
+  title: "Breach Rabbit HostPanel Pro - Modern Hosting Control Panel",
   description: "WordPress-optimized hosting control panel built with OpenLiteSpeed",
 };
 

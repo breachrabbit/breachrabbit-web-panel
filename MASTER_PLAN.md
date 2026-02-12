@@ -1,4 +1,4 @@
-# 🚀 HostPanel Pro - Мастер План
+# 🚀 Breach Rabbit HostPanel Pro - Мастер План
 
 ## 📋 Оглавление
 1. [Видение проекта](#видение-проекта)
@@ -16,7 +16,7 @@
 ## 🎯 Видение проекта
 
 ### Концепция
-**HostPanel Pro** — современная панель управления хостингом с фокусом на WordPress, построенная на OpenLiteSpeed + Nginx, с полностью кастомным UI в стиле единой экосистемы.
+**Breach Rabbit HostPanel Pro** — современная панель управления хостингом с фокусом на WordPress, построенная на OpenLiteSpeed + Nginx, с полностью кастомным UI в стиле единой экосистемы.
 
 ### Целевая аудитория
 - **Фаза 1:** Администратор (ты) — полный контроль над сервером
@@ -1469,7 +1469,7 @@ echo "WordPress installed successfully at ${WP_PATH}"
 
 set -e
 
-echo "🚀 HostPanel Pro Installation"
+echo "🚀 Breach Rabbit HostPanel Pro Installation"
 echo "=============================="
 
 # Update system
@@ -1528,7 +1528,7 @@ ufw --force enable
 
 # Clone panel
 cd /opt
-git clone https://github.com/yourusername/hostpanel-pro.git panel
+git clone https://github.com/yourusername/breachrabbit-hostpanel-pro.git panel
 cd panel
 
 # Install dependencies
@@ -1683,8 +1683,8 @@ TELEGRAM_CHAT_ID="your-chat-id"
 1. **Setup Development Environment**
    ```bash
    # Clone repo
-   git clone https://github.com/yourusername/hostpanel-pro.git
-   cd hostpanel-pro
+   git clone https://github.com/yourusername/breachrabbit-hostpanel-pro.git
+   cd breachrabbit-hostpanel-pro
    
    # Install dependencies
    npm install

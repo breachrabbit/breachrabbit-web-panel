@@ -1,4 +1,4 @@
-# 🚀 Next Steps - HostPanel Pro
+# 🚀 Next Steps - Breach Rabbit HostPanel Pro
 
 ## ✅ Что уже сделано
 
