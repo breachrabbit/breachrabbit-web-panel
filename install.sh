@@ -60,7 +60,7 @@ mkdir -p /opt
 cd /opt
 
 if [ ! -d "panel" ]; then
-  git clone https://github.com/breachrabbit/breach-rabbit-web-panel.git panel
+  git clone https://github.com/breachrabbit/breachrabbit-web-panel.git panel
 fi
 
 cd panel
