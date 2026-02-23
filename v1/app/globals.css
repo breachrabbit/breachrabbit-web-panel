@@ -1,0 +1,179 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 11%;
+    --foreground: 214 32% 91%;
+    --card: 217 33% 17%;
+    --card-foreground: 214 32% 91%;
+    --popover: 217 33% 17%;
+    --popover-foreground: 214 32% 91%;
+    --primary: 234 89% 56%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 33% 22%;
+    --secondary-foreground: 214 32% 91%;
+    --muted: 217 33% 22%;
+    --muted-foreground: 215 20% 60%;
+    --accent: 217 33% 22%;
+    --accent-foreground: 214 32% 91%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 215 28% 22%;
+    --input: 215 28% 22%;
+    --ring: 234 89% 56%;
+    --radius: 0.375rem;
+
+    /* NextAdmin custom */
+    --sidebar: 220 40% 13%;
+    --sidebar-foreground: 215 20% 65%;
+    --sidebar-active: 234 89% 56%;
+    --sidebar-hover: 217 33% 17%;
+    --header: 217 33% 17%;
+    --body: 222 47% 11%;
+    --stroke: 215 28% 22%;
+    --meta: 215 20% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-[hsl(var(--body))] text-foreground antialiased;
+    font-feature-settings: "cv11", "ss01";
+    font-variation-settings: "opsz" 32;
+  }
+}
+
+/* ====== Scrollbar ====== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(215 28% 25%);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(215 20% 35%);
+}
+
+/* ====== Status Indicators ====== */
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  position: relative;
+}
+.status-dot::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  opacity: 0.3;
+}
+.status-dot.active {
+  background: #10b981;
+}
+.status-dot.active::before {
+  background: #10b981;
+  animation: pulse-ring 2s ease-out infinite;
+}
+.status-dot.warning {
+  background: #f59e0b;
+}
+.status-dot.error {
+  background: #ef4444;
+}
+.status-dot.error::before {
+  background: #ef4444;
+  animation: pulse-ring 2s ease-out infinite;
+}
+.status-dot.stopped {
+  background: #6b7280;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.3; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+/* ====== Card Styles ====== */
+.card-hover {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.card-hover:hover {
+  border-color: hsl(215 28% 28%);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* ====== Progress Bars ====== */
+.progress-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: hsl(217 33% 22%);
+  overflow: hidden;
+}
+.progress-bar .fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+/* ====== Animations ====== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-in {
+  animation: fadeIn 0.4s ease-out both;
+}
+.delay-1 { animation-delay: 50ms; }
+.delay-2 { animation-delay: 100ms; }
+.delay-3 { animation-delay: 150ms; }
+.delay-4 { animation-delay: 200ms; }
+
+/* ====== Mini Sparkline Effect ====== */
+.sparkline-up {
+  color: #10b981;
+}
+.sparkline-down {
+  color: #ef4444;
+}
+
+/* ====== Sidebar ====== */
+.sidebar-link {
+  @apply flex items-center gap-3 rounded-md px-4 py-2.5 text-sm transition-all duration-150;
+  color: hsl(var(--sidebar-foreground));
+}
+.sidebar-link:hover {
+  background: hsl(var(--sidebar-hover));
+  color: hsl(var(--foreground));
+}
+.sidebar-link.active {
+  background: hsl(var(--sidebar-active));
+  color: white;
+}
+
+/* ====== Table Styles ====== */
+.data-table th {
+  @apply text-xs font-medium uppercase tracking-wider;
+  color: hsl(var(--meta));
+  padding: 12px 16px;
+  border-bottom: 1px solid hsl(var(--stroke));
+}
+.data-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid hsl(var(--stroke));
+}
+.data-table tbody tr:hover {
+  background: hsl(217 33% 15%);
+}
