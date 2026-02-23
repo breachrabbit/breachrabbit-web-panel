@@ -96,6 +96,20 @@ DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
 FLUSH PRIVILEGES;
 EOF
 
+systemctl enable mariadb
+systemctl start mariadb
+
+# Используем mariadb вместо mysql и выполняем сброс привилегий
+# В 11.4+ root по умолчанию заходит без пароля через sudo (unix_socket)
+mariadb -u root <<EOF
+ALTER USER 'root'@'localhost' IDENTIFIED VIA mysql_native_password USING PASSWORD('br_mysql_root_2026');
+DELETE FROM mysql.user WHERE User='';
+DROP DATABASE IF EXISTS test;
+DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
+FLUSH PRIVILEGES;
+EOF
+
+print_success "MariaDB configured"
 print_success "MariaDB configured"
 
 # 6. Configure Redis (FIX: with password and bind)
@@ -109,7 +123,7 @@ systemctl restart redis-server
 
 print_success "Redis configured (password protected)"
 
-# 7. Configure OpenLiteSpeed
+# 7. Configuring OpenLiteSpeed
 print_info "Step 7/10: Configuring OpenLiteSpeed..."
 /usr/local/lsws/bin/lswsctrl start || true
 systemctl unmask lshttpd.service || true
