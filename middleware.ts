@@ -1,22 +1,5 @@
-import { withAuth } from 'next-auth/middleware';
-import { NextResponse } from 'next/server';
+export { auth as middleware } from "@/auth";
 
-export default withAuth(
-  function middleware(req) {
-    // Additional middleware logic can go here
-    return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => !!token,
-    },
-    pages: {
-      signIn: '/login',
-    },
-  }
-);
-
-// Protect dashboard routes
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  matcher: ["/dashboard/:path*"],
 };

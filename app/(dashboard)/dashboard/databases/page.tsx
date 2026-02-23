@@ -74,7 +74,7 @@ function DbIcon({ type }: { type: string }) {
     MongoDB: "bg-success/15 text-success",
   };
   return (
-    <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${colors[type] || "bg-bodydark2/15 text-bodydark2"}`}>
+    <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${colors[type] || "bg-bodydark2/15 text-[#555]"}`}>
       <Database className="h-5 w-5" />
     </div>
   );
@@ -87,7 +87,7 @@ function TypeLabel({ type }: { type: string }) {
     MongoDB: "text-success",
   };
   return (
-    <span className={`text-[11px] font-medium ${colors[type] || "text-bodydark2"}`}>
+    <span className={`text-[11px] font-medium ${colors[type] || "text-[#555]"}`}>
       {type}
     </span>
   );
@@ -113,7 +113,7 @@ export default function DatabasesPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-white">Databases</h2>
-          <p className="text-sm text-bodydark2">
+          <p className="text-sm text-[#555]">
             {databases.length} databases · {totalSizeFormatted} total
           </p>
         </div>
@@ -125,25 +125,25 @@ export default function DatabasesPage() {
 
       {/* Stats row */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-md border border-strokedark bg-cardbg p-4 flex items-center gap-4">
+        <div className="rounded-md border border-[#222] bg-[#141414] p-4 flex items-center gap-4">
           <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand/15 text-brand">
             <Database className="h-5 w-5" />
           </div>
           <div>
             <p className="text-xl font-bold text-white">{databases.length}</p>
-            <p className="text-xs text-bodydark2">Total Databases</p>
+            <p className="text-xs text-[#555]">Total Databases</p>
           </div>
         </div>
-        <div className="rounded-md border border-strokedark bg-cardbg p-4 flex items-center gap-4">
+        <div className="rounded-md border border-[#222] bg-[#141414] p-4 flex items-center gap-4">
           <div className="flex h-11 w-11 items-center justify-center rounded-full bg-warning/15 text-warning">
             <HardDrive className="h-5 w-5" />
           </div>
           <div>
             <p className="text-xl font-bold text-white">{totalSizeFormatted}</p>
-            <p className="text-xs text-bodydark2">Total Size</p>
+            <p className="text-xs text-[#555]">Total Size</p>
           </div>
         </div>
-        <div className="rounded-md border border-strokedark bg-cardbg p-4 flex items-center gap-4">
+        <div className="rounded-md border border-[#222] bg-[#141414] p-4 flex items-center gap-4">
           <div className="flex h-11 w-11 items-center justify-center rounded-full bg-success/15 text-success">
             <Users className="h-5 w-5" />
           </div>
@@ -151,20 +151,20 @@ export default function DatabasesPage() {
             <p className="text-xl font-bold text-white">
               {databases.reduce((sum, db) => sum + db.users, 0)}
             </p>
-            <p className="text-xs text-bodydark2">Database Users</p>
+            <p className="text-xs text-[#555]">Database Users</p>
           </div>
         </div>
       </div>
 
       {/* Search */}
       <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-bodydark2" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#555]" />
         <input
           type="text"
           placeholder="Search databases..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-md border border-strokedark bg-cardbg py-2.5 pl-9 pr-4 text-sm text-white placeholder:text-bodydark2 outline-none focus:border-brand transition-colors"
+          className="w-full rounded-md border border-[#222] bg-[#141414] py-2.5 pl-9 pr-4 text-sm text-white placeholder:text-[#555] outline-none focus:border-brand transition-colors"
         />
       </div>
 
@@ -173,7 +173,7 @@ export default function DatabasesPage() {
         {filtered.map((db) => (
           <div
             key={db.id}
-            className="rounded-md border border-strokedark bg-cardbg p-5 card-hover"
+            className="rounded-md border border-[#222] bg-[#141414] p-5 card-hover"
           >
             {/* Header */}
             <div className="flex items-start justify-between mb-4">
@@ -187,21 +187,21 @@ export default function DatabasesPage() {
               <div className="relative">
                 <button
                   onClick={() => setOpenMenu(openMenu === db.id ? null : db.id)}
-                  className="p-1.5 rounded text-bodydark2 hover:text-white hover:bg-sidebar transition-colors"
+                  className="p-1.5 rounded text-[#555] hover:text-white hover:bg-[#111] transition-colors"
                 >
                   <MoreHorizontal className="h-4 w-4" />
                 </button>
                 {openMenu === db.id && (
                   <>
                     <div className="fixed inset-0 z-30" onClick={() => setOpenMenu(null)} />
-                    <div className="absolute right-0 top-full z-40 mt-1 w-44 rounded-md border border-strokedark bg-sidebar py-1 shadow-lg">
-                      <button className="flex w-full items-center gap-2 px-4 py-2 text-sm text-bodydark hover:text-white hover:bg-cardbg transition-colors">
+                    <div className="absolute right-0 top-full z-40 mt-1 w-44 rounded-md border border-[#222] bg-[#111] py-1 shadow-lg">
+                      <button className="flex w-full items-center gap-2 px-4 py-2 text-sm text-[#999] hover:text-white hover:bg-[#141414] transition-colors">
                         <Key className="h-3.5 w-3.5" /> Manage Users
                       </button>
-                      <button className="flex w-full items-center gap-2 px-4 py-2 text-sm text-bodydark hover:text-white hover:bg-cardbg transition-colors">
+                      <button className="flex w-full items-center gap-2 px-4 py-2 text-sm text-[#999] hover:text-white hover:bg-[#141414] transition-colors">
                         <Copy className="h-3.5 w-3.5" /> Clone
                       </button>
-                      <button className="flex w-full items-center gap-2 px-4 py-2 text-sm text-bodydark hover:text-white hover:bg-cardbg transition-colors">
+                      <button className="flex w-full items-center gap-2 px-4 py-2 text-sm text-[#999] hover:text-white hover:bg-[#141414] transition-colors">
                         <Download className="h-3.5 w-3.5" /> Export
                       </button>
                       <button className="flex w-full items-center gap-2 px-4 py-2 text-sm text-danger hover:bg-danger/10 transition-colors">
@@ -216,43 +216,43 @@ export default function DatabasesPage() {
             {/* Stats */}
             <div className="space-y-2.5 mb-4">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-bodydark2 flex items-center gap-1.5">
+                <span className="text-[#555] flex items-center gap-1.5">
                   <HardDrive className="h-3 w-3" /> Size
                 </span>
-                <span className="font-medium text-bodydark">{db.size}</span>
+                <span className="font-medium text-[#999]">{db.size}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="text-bodydark2 flex items-center gap-1.5">
+                <span className="text-[#555] flex items-center gap-1.5">
                   <Database className="h-3 w-3" /> Tables
                 </span>
-                <span className="font-medium text-bodydark">{db.tables}</span>
+                <span className="font-medium text-[#999]">{db.tables}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="text-bodydark2 flex items-center gap-1.5">
+                <span className="text-[#555] flex items-center gap-1.5">
                   <Users className="h-3 w-3" /> Users
                 </span>
-                <span className="font-medium text-bodydark">{db.users}</span>
+                <span className="font-medium text-[#999]">{db.users}</span>
               </div>
               {db.linkedSite && (
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-bodydark2 flex items-center gap-1.5">
+                  <span className="text-[#555] flex items-center gap-1.5">
                     <Link2 className="h-3 w-3" /> Site
                   </span>
                   <span className="font-medium text-brand">{db.linkedSite}</span>
                 </div>
               )}
               <div className="flex items-center justify-between text-xs">
-                <span className="text-bodydark2">Charset</span>
-                <span className="font-medium text-bodydark">{db.charset}</span>
+                <span className="text-[#555]">Charset</span>
+                <span className="font-medium text-[#999]">{db.charset}</span>
               </div>
             </div>
 
             {/* Actions */}
-            <div className="flex gap-2 pt-3 border-t border-strokedark">
-              <button className="flex-1 flex items-center justify-center gap-1.5 rounded-md border border-strokedark py-2 text-xs font-medium text-bodydark hover:text-white hover:border-brand/30 hover:bg-sidebar transition-colors">
+            <div className="flex gap-2 pt-3 border-t border-[#222]">
+              <button className="flex-1 flex items-center justify-center gap-1.5 rounded-md border border-[#222] py-2 text-xs font-medium text-[#999] hover:text-white hover:border-brand/30 hover:bg-[#111] transition-colors">
                 <Terminal className="h-3 w-3" /> SQL Editor
               </button>
-              <button className="flex-1 flex items-center justify-center gap-1.5 rounded-md border border-strokedark py-2 text-xs font-medium text-bodydark hover:text-white hover:border-brand/30 hover:bg-sidebar transition-colors">
+              <button className="flex-1 flex items-center justify-center gap-1.5 rounded-md border border-[#222] py-2 text-xs font-medium text-[#999] hover:text-white hover:border-brand/30 hover:bg-[#111] transition-colors">
                 <Download className="h-3 w-3" /> Export
               </button>
             </div>
@@ -261,7 +261,7 @@ export default function DatabasesPage() {
       </div>
 
       {filtered.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 text-bodydark2">
+        <div className="flex flex-col items-center justify-center py-16 text-[#555]">
           <Database className="h-10 w-10 mb-3 opacity-50" />
           <p className="text-sm">No databases found</p>
         </div>

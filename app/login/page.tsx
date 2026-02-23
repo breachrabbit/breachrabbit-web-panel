@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, Shield, Server, Globe } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,11 +39,9 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen">
       {/* Left panel — branding */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between bg-sidebar p-12 relative overflow-hidden">
-        {/* Decorative circles */}
-        <div className="absolute -top-20 -left-20 h-64 w-64 rounded-full bg-brand/10" />
-        <div className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-brand/5" />
-        <div className="absolute top-1/2 left-1/3 h-48 w-48 rounded-full bg-brand/5" />
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between bg-[#111] p-12 relative overflow-hidden">
+        <div className="absolute -top-20 -left-20 h-64 w-64 rounded-full bg-brand/10 blur-3xl" />
+        <div className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-brand/5 blur-3xl" />
 
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-3">
@@ -54,7 +52,7 @@ export default function LoginPage() {
               HostPanel Pro
             </span>
           </div>
-          <p className="text-sm text-bodydark2">by Breach Rabbit</p>
+          <p className="text-sm text-[#555]">by Breach Rabbit</p>
         </div>
 
         <div className="relative z-10">
@@ -63,37 +61,44 @@ export default function LoginPage() {
             <br />
             Control Panel
           </h2>
-          <p className="text-bodydark2 max-w-md leading-relaxed">
+          <p className="text-[#999] max-w-md leading-relaxed">
             Manage your servers, sites, databases, and SSL certificates from a
-            single dashboard. Built on OpenLiteSpeed + Nginx for maximum
-            performance.
+            single dashboard. Built on OpenLiteSpeed + Nginx.
           </p>
         </div>
 
         <div className="relative z-10">
           <div className="flex items-center gap-6">
-            <div className="flex flex-col">
-              <span className="text-2xl font-bold text-white">OLS</span>
-              <span className="text-xs text-bodydark2">Web Server</span>
+            <div className="flex items-center gap-2">
+              <Server className="h-5 w-5 text-brand" />
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-white">OLS</span>
+                <span className="text-xs text-[#555]">Web Server</span>
+              </div>
             </div>
-            <div className="h-8 w-px bg-strokedark" />
-            <div className="flex flex-col">
-              <span className="text-2xl font-bold text-white">SSL</span>
-              <span className="text-xs text-bodydark2">Auto-Renew</span>
+            <div className="h-8 w-px bg-[#222]" />
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-success" />
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-white">SSL</span>
+                <span className="text-xs text-[#555]">Auto-Renew</span>
+              </div>
             </div>
-            <div className="h-8 w-px bg-strokedark" />
-            <div className="flex flex-col">
-              <span className="text-2xl font-bold text-white">WP</span>
-              <span className="text-xs text-bodydark2">Optimized</span>
+            <div className="h-8 w-px bg-[#222]" />
+            <div className="flex items-center gap-2">
+              <Globe className="h-5 w-5 text-wordpress" />
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-white">WP</span>
+                <span className="text-xs text-[#555]">Optimized</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Right panel — form */}
-      <div className="flex w-full lg:w-1/2 items-center justify-center bg-bodybg p-6">
+      <div className="flex w-full lg:w-1/2 items-center justify-center bg-[#0a0a0a] p-6">
         <div className="w-full max-w-md">
-          {/* Mobile logo */}
           <div className="flex items-center gap-3 mb-8 lg:hidden">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand font-bold text-white text-sm">
               HP
@@ -101,10 +106,10 @@ export default function LoginPage() {
             <span className="text-xl font-bold text-white">HostPanel Pro</span>
           </div>
 
-          <div className="rounded-lg border border-strokedark bg-cardbg p-8 shadow-lg">
+          <div className="rounded-lg border border-[#222] bg-[#141414] p-8 shadow-lg">
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-white mb-2">Sign In</h2>
-              <p className="text-sm text-bodydark2">
+              <p className="text-sm text-[#555]">
                 Enter your credentials to access the panel
               </p>
             </div>
@@ -117,21 +122,22 @@ export default function LoginPage() {
               )}
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-bodydark">
+                <label className="mb-2 block text-sm font-medium text-[#999]">
                   Email
                 </label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@breachrabbit.pro"
+                  placeholder="admin@example.com"
                   required
-                  className="w-full rounded-md border border-strokedark bg-formdark px-4 py-3 text-sm text-white placeholder:text-bodydark2 outline-none focus:border-brand transition-colors"
+                  autoComplete="email"
+                  className="w-full rounded-md border border-[#222] bg-[#1a1a1a] px-4 py-3 text-sm text-white placeholder:text-[#444] outline-none focus:border-brand transition-colors"
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-bodydark">
+                <label className="mb-2 block text-sm font-medium text-[#999]">
                   Password
                 </label>
                 <div className="relative">
@@ -141,12 +147,13 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
                     required
-                    className="w-full rounded-md border border-strokedark bg-formdark px-4 py-3 pr-11 text-sm text-white placeholder:text-bodydark2 outline-none focus:border-brand transition-colors"
+                    autoComplete="current-password"
+                    className="w-full rounded-md border border-[#222] bg-[#1a1a1a] px-4 py-3 pr-11 text-sm text-white placeholder:text-[#444] outline-none focus:border-brand transition-colors"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-bodydark2 hover:text-white transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#555] hover:text-white transition-colors"
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -160,7 +167,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 rounded-md bg-brand px-6 py-3.5 text-sm font-medium text-white hover:bg-brandlight disabled:opacity-50 transition-colors"
+                className="w-full flex items-center justify-center gap-2 rounded-md bg-brand px-6 py-3.5 text-sm font-medium text-white hover:bg-brandlight disabled:opacity-50 transition-colors cursor-pointer"
               >
                 {loading ? (
                   <>
@@ -174,8 +181,8 @@ export default function LoginPage() {
             </form>
           </div>
 
-          <p className="mt-6 text-center text-xs text-bodydark2">
-            Breach Rabbit HostPanel Pro v1.0 · Powered by OpenLiteSpeed
+          <p className="mt-6 text-center text-xs text-[#333]">
+            Breach Rabbit HostPanel Pro v2.0
           </p>
         </div>
       </div>

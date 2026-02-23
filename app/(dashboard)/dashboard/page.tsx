@@ -68,7 +68,7 @@ function MetricCard({
   progress?: number;
 }) {
   return (
-    <div className="rounded-md border border-strokedark bg-cardbg p-5 animate-in">
+    <div className="rounded-md border border-[#222] bg-[#141414] p-5 animate-in">
       <div className="flex items-center justify-between">
         <div
           className={`flex h-11 w-11 items-center justify-center rounded-full ${color}`}
@@ -94,12 +94,12 @@ function MetricCard({
         <h4 className="text-2xl font-bold text-white">
           {value}
           {suffix && (
-            <span className="text-sm font-normal text-bodydark2 ml-1">
+            <span className="text-sm font-normal text-[#555] ml-1">
               {suffix}
             </span>
           )}
         </h4>
-        <span className="text-sm text-bodydark2">{label}</span>
+        <span className="text-sm text-[#555]">{label}</span>
       </div>
       {progress !== undefined && (
         <div className="mt-3 progress-bar">
@@ -116,7 +116,7 @@ function MetricCard({
         </div>
       )}
       {subtitle && (
-        <p className="mt-2 text-xs text-bodydark2">{subtitle}</p>
+        <p className="mt-2 text-xs text-[#555]">{subtitle}</p>
       )}
     </div>
   );
@@ -129,12 +129,12 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-white">Dashboard</h2>
-          <p className="text-sm text-bodydark2">
+          <p className="text-sm text-[#555]">
             Server overview and quick management
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-2 rounded-md border border-strokedark bg-cardbg px-4 py-2 text-sm text-bodydark hover:text-white hover:border-brand/50 transition-colors">
+          <button className="flex items-center gap-2 rounded-md border border-[#222] bg-[#141414] px-4 py-2 text-sm text-[#999] hover:text-white hover:border-brand/50 transition-colors">
             <RefreshCw className="h-3.5 w-3.5" />
             Refresh
           </button>
@@ -188,13 +188,13 @@ export default function DashboardPage() {
       </div>
 
       {/* Services status bar */}
-      <div className="rounded-md border border-strokedark bg-cardbg p-5">
+      <div className="rounded-md border border-[#222] bg-[#141414] p-5">
         <h3 className="text-sm font-semibold text-white mb-4">Services</h3>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {services.map((svc) => (
             <div
               key={svc.name}
-              className="flex items-center gap-2.5 rounded-md border border-strokedark bg-sidebar px-3 py-2.5"
+              className="flex items-center gap-2.5 rounded-md border border-[#222] bg-[#111] px-3 py-2.5"
             >
               <span
                 className={`status-dot ${
@@ -202,10 +202,10 @@ export default function DashboardPage() {
                 }`}
               />
               <div className="flex flex-col min-w-0">
-                <span className="text-xs font-medium text-bodydark truncate">
+                <span className="text-xs font-medium text-[#999] truncate">
                   {svc.name}
                 </span>
-                <span className="text-[10px] text-bodydark2">
+                <span className="text-[10px] text-[#555]">
                   :{svc.port}
                 </span>
               </div>
@@ -216,8 +216,8 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         {/* Sites table */}
-        <div className="xl:col-span-2 rounded-md border border-strokedark bg-cardbg">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-strokedark">
+        <div className="xl:col-span-2 rounded-md border border-[#222] bg-[#141414]">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[#222]">
             <h3 className="text-base font-semibold text-white">Sites</h3>
             <Link
               href="/dashboard/sites"
@@ -266,7 +266,7 @@ export default function DashboardPage() {
                           site.ssl < 14
                             ? "text-warning"
                             : site.ssl < 30
-                            ? "text-bodydark"
+                            ? "text-[#999]"
                             : "text-success"
                         }`}
                       >
@@ -274,22 +274,22 @@ export default function DashboardPage() {
                         {site.ssl}d
                       </span>
                     </td>
-                    <td className="text-right text-sm text-bodydark">
+                    <td className="text-right text-sm text-[#999]">
                       {site.requests.toLocaleString()}
                     </td>
-                    <td className="text-right text-sm text-bodydark">
+                    <td className="text-right text-sm text-[#999]">
                       {site.response}
                     </td>
                     <td>
                       <div className="flex items-center justify-center gap-1">
                         <button
-                          className="p-1.5 rounded text-bodydark2 hover:text-white hover:bg-sidebar transition-colors"
+                          className="p-1.5 rounded text-[#555] hover:text-white hover:bg-[#111] transition-colors"
                           title="Visit"
                         >
                           <ExternalLink className="h-3.5 w-3.5" />
                         </button>
                         <button
-                          className="p-1.5 rounded text-bodydark2 hover:text-white hover:bg-sidebar transition-colors"
+                          className="p-1.5 rounded text-[#555] hover:text-white hover:bg-[#111] transition-colors"
                           title="Details"
                         >
                           <Eye className="h-3.5 w-3.5" />
@@ -304,8 +304,8 @@ export default function DashboardPage() {
         </div>
 
         {/* Alerts & Activity */}
-        <div className="rounded-md border border-strokedark bg-cardbg">
-          <div className="px-5 py-4 border-b border-strokedark">
+        <div className="rounded-md border border-[#222] bg-[#141414]">
+          <div className="px-5 py-4 border-b border-[#222]">
             <h3 className="text-base font-semibold text-white">
               Alerts & Activity
             </h3>
@@ -323,10 +323,10 @@ export default function DashboardPage() {
                   )}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm text-bodydark leading-snug">
+                  <p className="text-sm text-[#999] leading-snug">
                     {alert.message}
                   </p>
-                  <p className="text-[11px] text-bodydark2 mt-0.5">
+                  <p className="text-[11px] text-[#555] mt-0.5">
                     {alert.time}
                   </p>
                 </div>
@@ -335,8 +335,8 @@ export default function DashboardPage() {
           </div>
 
           {/* Quick actions */}
-          <div className="border-t border-strokedark px-5 py-4">
-            <h4 className="text-xs font-semibold text-bodydark2 uppercase tracking-wider mb-3">
+          <div className="border-t border-[#222] px-5 py-4">
+            <h4 className="text-xs font-semibold text-[#555] uppercase tracking-wider mb-3">
               Quick Actions
             </h4>
             <div className="grid grid-cols-2 gap-2">
@@ -349,7 +349,7 @@ export default function DashboardPage() {
                 <Link
                   key={action.label}
                   href={action.href}
-                  className="flex items-center gap-2 rounded-md border border-strokedark px-3 py-2.5 text-xs font-medium text-bodydark hover:text-white hover:border-brand/30 hover:bg-sidebar transition-colors"
+                  className="flex items-center gap-2 rounded-md border border-[#222] px-3 py-2.5 text-xs font-medium text-[#999] hover:text-white hover:border-brand/30 hover:bg-[#111] transition-colors"
                 >
                   <action.icon className="h-3.5 w-3.5 text-brand" />
                   {action.label}

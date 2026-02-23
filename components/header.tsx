@@ -24,13 +24,13 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
   }));
 
   return (
-    <header className="sticky top-0 z-30 flex w-full border-b border-strokedark bg-cardbg">
+    <header className="sticky top-0 z-30 flex w-full border-b border-[#222] bg-[#141414]">
       <div className="flex flex-grow items-center justify-between px-4 py-4 shadow-sm md:px-6 2xl:px-10">
         {/* Left: hamburger + breadcrumb */}
         <div className="flex items-center gap-3">
           <button
             onClick={onMenuClick}
-            className="rounded-md p-1.5 text-bodydark2 hover:text-white hover:bg-sidebar transition-colors lg:hidden"
+            className="rounded-md p-1.5 text-[#555] hover:text-white hover:bg-[#111] transition-colors lg:hidden"
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -39,14 +39,14 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
             {breadcrumbs.map((crumb) => (
               <span key={crumb.href} className="flex items-center gap-1.5">
                 {crumb.href !== breadcrumbs[0]?.href && (
-                  <span className="text-bodydark2">/</span>
+                  <span className="text-[#555]">/</span>
                 )}
                 {crumb.isLast ? (
                   <span className="font-medium text-brand">{crumb.name}</span>
                 ) : (
                   <Link
                     href={crumb.href}
-                    className="text-bodydark2 hover:text-white transition-colors"
+                    className="text-[#555] hover:text-white transition-colors"
                   >
                     {crumb.name}
                   </Link>
@@ -61,17 +61,17 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
           {/* Search */}
           <div className="hidden md:flex items-center">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-bodydark2" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#555]" />
               <input
                 type="text"
                 placeholder="Type to search..."
-                className="w-56 rounded-md border border-strokedark bg-sidebar py-2 pl-9 pr-4 text-sm text-bodydark placeholder:text-bodydark2 focus:outline-none focus:border-brand transition-colors"
+                className="w-56 rounded-md border border-[#222] bg-[#111] py-2 pl-9 pr-4 text-sm text-[#999] placeholder:text-[#555] focus:outline-none focus:border-brand transition-colors"
               />
             </div>
           </div>
 
           {/* Notification bell */}
-          <button className="relative flex h-9 w-9 items-center justify-center rounded-full border border-strokedark bg-sidebar text-bodydark2 hover:text-white transition-colors">
+          <button className="relative flex h-9 w-9 items-center justify-center rounded-full border border-[#222] bg-[#111] text-[#555] hover:text-white transition-colors">
             <Bell className="h-4 w-4" />
             <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-brand text-[9px] font-bold text-white">
               3
@@ -79,7 +79,7 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
           </button>
 
           {/* Messages */}
-          <button className="relative flex h-9 w-9 items-center justify-center rounded-full border border-strokedark bg-sidebar text-bodydark2 hover:text-white transition-colors">
+          <button className="relative flex h-9 w-9 items-center justify-center rounded-full border border-[#222] bg-[#111] text-[#555] hover:text-white transition-colors">
             <MessageSquare className="h-4 w-4" />
             <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-brand text-[9px] font-bold text-white">
               2
@@ -89,10 +89,10 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
           {/* User avatar (mobile) */}
           <div className="flex items-center gap-3 ml-2">
             <div className="hidden lg:flex flex-col text-right">
-              <span className="text-sm font-medium text-bodydark">
+              <span className="text-sm font-medium text-[#999]">
                 {session?.data?.user?.name || "Admin"}
               </span>
-              <span className="text-[11px] text-bodydark2">Administrator</span>
+              <span className="text-[11px] text-[#555]">Administrator</span>
             </div>
             <div className="h-9 w-9 rounded-full bg-brand/20 border-2 border-brand/30 flex items-center justify-center text-xs font-bold text-brand">
               {session?.data?.user?.name

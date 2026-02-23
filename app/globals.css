@@ -4,36 +4,47 @@
 
 @layer base {
   :root {
-    --background: 222 47% 11%;
-    --foreground: 214 32% 91%;
-    --card: 217 33% 17%;
-    --card-foreground: 214 32% 91%;
-    --popover: 217 33% 17%;
-    --popover-foreground: 214 32% 91%;
-    --primary: 234 89% 56%;
+    /* HostPanel Pro v2 — Dark theme from MASTER_PLAN_v2 */
+    --background: 0 0% 4%;        /* #0a0a0a */
+    --foreground: 0 0% 96%;       /* #f5f5f5 */
+    --card: 0 0% 8%;              /* #141414 */
+    --card-foreground: 0 0% 96%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 217 91% 60%;       /* #3b82f6 */
     --primary-foreground: 0 0% 100%;
-    --secondary: 217 33% 22%;
-    --secondary-foreground: 214 32% 91%;
-    --muted: 217 33% 22%;
-    --muted-foreground: 215 20% 60%;
-    --accent: 217 33% 22%;
-    --accent-foreground: 214 32% 91%;
-    --destructive: 0 84% 60%;
+    --secondary: 0 0% 10%;        /* #1a1a1a */
+    --secondary-foreground: 0 0% 96%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 60%; /* #999 */
+    --accent: 0 0% 10%;
+    --accent-foreground: 0 0% 96%;
+    --destructive: 0 84% 60%;     /* #ef4444 */
     --destructive-foreground: 0 0% 100%;
-    --border: 215 28% 22%;
-    --input: 215 28% 22%;
-    --ring: 234 89% 56%;
-    --radius: 0.375rem;
+    --border: 0 0% 13%;           /* #222 */
+    --input: 0 0% 13%;
+    --ring: 217 91% 60%;
+    --radius: 0.5rem;
 
-    /* NextAdmin custom */
-    --sidebar: 220 40% 13%;
-    --sidebar-foreground: 215 20% 65%;
-    --sidebar-active: 234 89% 56%;
-    --sidebar-hover: 217 33% 17%;
-    --header: 217 33% 17%;
-    --body: 222 47% 11%;
-    --stroke: 215 28% 22%;
-    --meta: 215 20% 55%;
+    /* Semantic tokens */
+    --sidebar: 0 0% 7%;           /* #111 */
+    --sidebar-foreground: 0 0% 60%;
+    --sidebar-active: 217 91% 60%;
+    --sidebar-hover: 0 0% 10%;
+    --header: 0 0% 8%;
+    --body: 0 0% 4%;
+    --stroke: 0 0% 13%;
+    --meta: 0 0% 33%;
+
+    /* Status */
+    --success: 160 84% 39%;      /* #10b981 */
+    --warning: 38 92% 50%;       /* #f59e0b */
+    --error: 0 84% 60%;          /* #ef4444 */
+    --info: 239 84% 67%;         /* #6366f1 */
+
+    /* Special */
+    --wordpress: 200 68% 38%;    /* #21759b */
+    --terminal: 120 100% 50%;    /* #00ff41 */
   }
 }
 
@@ -57,11 +68,11 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(215 28% 25%);
+  background: hsl(0 0% 20%);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(215 20% 35%);
+  background: hsl(0 0% 30%);
 }
 
 /* ====== Status Indicators ====== */
@@ -74,36 +85,46 @@
   position: relative;
 }
 .status-dot::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: -3px;
   border-radius: 50%;
   opacity: 0.3;
 }
 .status-dot.active {
-  background: #10b981;
+  background: hsl(var(--success));
 }
 .status-dot.active::before {
-  background: #10b981;
+  background: hsl(var(--success));
   animation: pulse-ring 2s ease-out infinite;
 }
 .status-dot.warning {
-  background: #f59e0b;
+  background: hsl(var(--warning));
+}
+.status-dot.warning::before {
+  background: hsl(var(--warning));
+  animation: pulse-ring 2.5s ease-out infinite;
 }
 .status-dot.error {
-  background: #ef4444;
+  background: hsl(var(--error));
 }
 .status-dot.error::before {
-  background: #ef4444;
+  background: hsl(var(--error));
   animation: pulse-ring 2s ease-out infinite;
 }
 .status-dot.stopped {
-  background: #6b7280;
+  background: hsl(0 0% 42%);
 }
 
 @keyframes pulse-ring {
-  0% { transform: scale(1); opacity: 0.3; }
-  100% { transform: scale(1.8); opacity: 0; }
+  0% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
 }
 
 /* ====== Card Styles ====== */
@@ -111,15 +132,15 @@
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .card-hover:hover {
-  border-color: hsl(215 28% 28%);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  border-color: hsl(0 0% 20%);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 /* ====== Progress Bars ====== */
 .progress-bar {
   height: 6px;
   border-radius: 3px;
-  background: hsl(217 33% 22%);
+  background: hsl(0 0% 13%);
   overflow: hidden;
 }
 .progress-bar .fill {
@@ -130,23 +151,29 @@
 
 /* ====== Animations ====== */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .animate-in {
   animation: fadeIn 0.4s ease-out both;
 }
-.delay-1 { animation-delay: 50ms; }
-.delay-2 { animation-delay: 100ms; }
-.delay-3 { animation-delay: 150ms; }
-.delay-4 { animation-delay: 200ms; }
-
-/* ====== Mini Sparkline Effect ====== */
-.sparkline-up {
-  color: #10b981;
+.delay-1 {
+  animation-delay: 50ms;
 }
-.sparkline-down {
-  color: #ef4444;
+.delay-2 {
+  animation-delay: 100ms;
+}
+.delay-3 {
+  animation-delay: 150ms;
+}
+.delay-4 {
+  animation-delay: 200ms;
 }
 
 /* ====== Sidebar ====== */
@@ -174,6 +201,15 @@
   padding: 14px 16px;
   border-bottom: 1px solid hsl(var(--stroke));
 }
+.data-table tbody tr {
+  transition: background-color 0.1s ease;
+}
 .data-table tbody tr:hover {
-  background: hsl(217 33% 15%);
+  background: hsl(0 0% 8%);
+}
+
+/* ====== Focus States ====== */
+*:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }

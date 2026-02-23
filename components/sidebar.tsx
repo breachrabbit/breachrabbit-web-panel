@@ -72,7 +72,7 @@ export function Sidebar({ open, onToggle }: SidebarProps) {
       )}
 
       <aside
-        className={`absolute left-0 top-0 z-50 flex h-screen flex-col overflow-y-hidden bg-sidebar duration-200 ease-linear lg:static lg:translate-x-0 ${
+        className={`absolute left-0 top-0 z-50 flex h-screen flex-col overflow-y-hidden bg-[#111] duration-200 ease-linear lg:static lg:translate-x-0 ${
           open ? "w-72 translate-x-0" : "w-0 -translate-x-full lg:w-72 lg:translate-x-0"
         }`}
       >
@@ -86,24 +86,24 @@ export function Sidebar({ open, onToggle }: SidebarProps) {
               <span className="text-lg font-bold text-white leading-tight tracking-tight">
                 HostPanel
               </span>
-              <span className="text-[10px] font-medium text-bodydark2 uppercase tracking-widest">
+              <span className="text-[10px] font-medium text-[#555] uppercase tracking-widest">
                 Pro Edition
               </span>
             </div>
           </Link>
           <button
             onClick={onToggle}
-            className="block lg:hidden text-bodydark2 hover:text-white"
+            className="block lg:hidden text-[#555] hover:text-white"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* OLS Status */}
-        <div className="mx-4 mb-4 rounded-md bg-[#1A222C] px-4 py-2.5 flex items-center gap-3">
+        <div className="mx-4 mb-4 rounded-md bg-[#0a0a0a] px-4 py-2.5 flex items-center gap-3">
           <Server className="h-4 w-4 text-success flex-shrink-0" />
           <div className="flex flex-col">
-            <span className="text-xs font-medium text-bodydark">OpenLiteSpeed</span>
+            <span className="text-xs font-medium text-[#999]">OpenLiteSpeed</span>
             <span className="text-[10px] text-success font-medium">Running · Port 7080</span>
           </div>
           <div className="ml-auto">
@@ -116,7 +116,7 @@ export function Sidebar({ open, onToggle }: SidebarProps) {
           <nav className="px-4 py-2">
             {menuGroups.map((group) => (
               <div key={group.label} className="mb-5">
-                <h3 className="mb-2 ml-4 text-[11px] font-semibold tracking-[0.15em] text-bodydark2">
+                <h3 className="mb-2 ml-4 text-[11px] font-semibold tracking-[0.15em] text-[#555]">
                   {group.label}
                 </h3>
                 <ul className="flex flex-col gap-0.5">
@@ -147,7 +147,7 @@ export function Sidebar({ open, onToggle }: SidebarProps) {
         </div>
 
         {/* User section */}
-        <div className="mt-auto border-t border-strokedark px-4 py-4">
+        <div className="mt-auto border-t border-[#222] px-4 py-4">
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 rounded-full bg-brand/20 flex items-center justify-center text-xs font-bold text-brand">
               {user?.name
@@ -155,16 +155,16 @@ export function Sidebar({ open, onToggle }: SidebarProps) {
                 : "AD"}
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-sm font-medium text-bodydark truncate">
+              <span className="text-sm font-medium text-[#999] truncate">
                 {user?.name || "Admin"}
               </span>
-              <span className="text-[11px] text-bodydark2 truncate">
+              <span className="text-[11px] text-[#555] truncate">
                 {user?.email || "admin@breachrabbit.pro"}
               </span>
             </div>
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
-              className="ml-auto p-2 rounded-md text-bodydark2 hover:text-white hover:bg-[#1A222C] transition-colors"
+              className="ml-auto p-2 rounded-md text-[#555] hover:text-white hover:bg-[#0a0a0a] transition-colors"
               title="Sign out"
             >
               <LogOut className="h-4 w-4" />

@@ -6,7 +6,7 @@ import "./globals.css";
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
   display: "swap",
-  variable: "--font-satoshi",
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {

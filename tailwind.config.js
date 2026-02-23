@@ -2,9 +2,9 @@
 module.exports = {
   darkMode: ["class"],
   content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
   ],
   theme: {
     container: {
@@ -14,10 +14,11 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-satoshi)", "system-ui", "sans-serif"],
+        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "Fira Code", "monospace"],
       },
       colors: {
-        // NextAdmin semantic
+        // Shadcn semantic (from CSS vars)
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -51,22 +52,28 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // NextAdmin fixed colors
-        bodybg: "#1A222C",
-        sidebar: "#1C2434",
-        cardbg: "#24303F",
-        strokedark: "#2E3A47",
-        formdark: "#1D2A39",
-        bodydark: "#AEB7C0",
-        bodydark2: "#8A99AF",
-        // Accent colors
-        brand: "#3C50E0",
-        brandlight: "#5475E5",
-        success: "#219653",
-        warning: "#FFA70B",
-        danger: "#D34053",
-        // WordPress
+
+        // HostPanel Pro v2 fixed colors
+        bodybg: "#0a0a0a",
+        sidebar: "#111111",
+        cardbg: "#141414",
+        strokedark: "#222222",
+        formdark: "#1a1a1a",
+        bodydark: "#999999",
+        bodydark2: "#555555",
+
+        // Accent & status
+        brand: "#3b82f6",
+        brandlight: "#2563eb",
+        brandmuted: "#1d3a5f",
+        success: "#10b981",
+        warning: "#f59e0b",
+        danger: "#ef4444",
+        info: "#6366f1",
+
+        // Special
         wordpress: "#21759b",
+        terminal: "#00ff41",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -75,12 +82,12 @@ module.exports = {
       },
       keyframes: {
         "accordion-down": {
-          from: { height: 0 },
+          from: { height: "0" },
           to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
           from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: 0 },
+          to: { height: "0" },
         },
       },
       animation: {
@@ -90,4 +97,4 @@ module.exports = {
     },
   },
   plugins: [require("tailwindcss-animate")],
-}
+};
