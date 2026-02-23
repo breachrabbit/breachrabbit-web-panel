@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Globe } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,30 +27,59 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError("Invalid email or password");
+        setError(
+          result.error.includes("Too many")
+            ? result.error
+            : "Invalid email or password"
+        );
       } else {
         router.push("/dashboard");
         router.refresh();
       }
-    } catch (error) {
-      setError("An error occurred. Please try again.");
+    } catch {
+      setError("Connection error. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
-            <Globe className="h-6 w-6 text-primary-foreground" />
+    <div className="flex min-h-screen items-center justify-center gradient-mesh p-4">
+      {/* Background decorative elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-blue-500/5 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-violet-500/5 blur-3xl" />
+      </div>
+
+      <Card className="relative w-full max-w-[420px] border-border/50 bg-card/80 backdrop-blur-xl shadow-2xl">
+        <CardHeader className="space-y-4 text-center pb-2 pt-8">
+          {/* Logo */}
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
+            <svg
+              className="h-7 w-7 text-primary"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
+              <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
+              <line x1="6" y1="6" x2="6.01" y2="6" />
+              <line x1="6" y1="18" x2="6.01" y2="18" />
+            </svg>
           </div>
-          <CardTitle className="text-2xl font-bold">Breach Rabbit HostPanel Pro</CardTitle>
-          <CardDescription>Sign in to your account</CardDescription>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">HostPanel Pro</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Sign in to manage your server
+            </p>
+          </div>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+
+        <CardContent className="pb-8 pt-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
                 Email
@@ -59,13 +87,16 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@breachrabbit.pro"
+                placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
+                autoComplete="email"
+                className="h-11 bg-background/50"
               />
             </div>
+
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium">
                 Password
@@ -77,20 +108,35 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={loading}
+                autoComplete="current-password"
+                className="h-11 bg-background/50"
               />
             </div>
+
             {error && (
-              <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+              <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
                 {error}
               </div>
             )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing in..." : "Sign in"}
+
+            <Button
+              type="submit"
+              className="w-full h-11 font-medium text-[15px]"
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Signing in...
+                </span>
+              ) : (
+                "Sign in"
+              )}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm text-muted-foreground">
-            Default credentials: admin@breachrabbit.pro / admin123
-          </div>
         </CardContent>
       </Card>
     </div>

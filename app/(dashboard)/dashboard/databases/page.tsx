@@ -14,261 +14,185 @@ import {
   Trash2,
   Key,
   HardDrive,
+  Copy,
+  Link as LinkIcon,
 } from "lucide-react";
 import { formatBytes } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-// Mock data
 const mockDatabases = [
   {
-    id: "1",
-    name: "blog_wp",
-    type: "MARIADB",
-    sizeBytes: BigInt(245000000),
-    users: [
-      { username: "blog_user", host: "localhost" },
-    ],
-    linkedSite: "blog.example.com",
-    createdAt: new Date("2025-01-10"),
+    id: "1", name: "blog_wp", type: "MARIADB", sizeBytes: BigInt(245000000),
+    users: [{ username: "blog_user", host: "localhost" }],
+    linkedSite: "blog.example.com", createdAt: new Date("2026-01-10"),
   },
   {
-    id: "2",
-    name: "shop_wp",
-    type: "MARIADB",
-    sizeBytes: BigInt(512000000),
-    users: [
-      { username: "shop_user", host: "localhost" },
-    ],
-    linkedSite: "shop.example.com",
-    createdAt: new Date("2025-01-15"),
+    id: "2", name: "shop_wp", type: "MARIADB", sizeBytes: BigInt(512000000),
+    users: [{ username: "shop_user", host: "localhost" }],
+    linkedSite: "shop.example.com", createdAt: new Date("2026-01-15"),
   },
   {
-    id: "3",
-    name: "analytics_db",
-    type: "POSTGRESQL",
-    sizeBytes: BigInt(1200000000),
-    users: [
-      { username: "analytics_user", host: "localhost" },
-      { username: "readonly_user", host: "localhost" },
-    ],
-    linkedSite: null,
-    createdAt: new Date("2025-02-01"),
+    id: "3", name: "analytics_db", type: "POSTGRESQL", sizeBytes: BigInt(1200000000),
+    users: [{ username: "analytics_user", host: "localhost" }, { username: "readonly_user", host: "localhost" }],
+    linkedSite: null, createdAt: new Date("2026-02-01"),
   },
 ];
 
-function getDBTypeLabel(type: string): string {
-  const labels: Record<string, string> = {
-    MARIADB: "MariaDB",
-    POSTGRESQL: "PostgreSQL",
-    MONGODB: "MongoDB",
-  };
-  return labels[type] || type;
-}
+const typeColors: Record<string, string> = {
+  MARIADB: "text-blue-400 bg-blue-500/10 border-blue-500/20",
+  POSTGRESQL: "text-violet-400 bg-violet-500/10 border-violet-500/20",
+  MONGODB: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+};
 
 export default function DatabasesPage() {
   const [searchQuery, setSearchQuery] = useState("");
-
-  const filteredDatabases = mockDatabases.filter((db) =>
+  const filtered = mockDatabases.filter((db) =>
     db.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const totalSize = mockDatabases.reduce(
-    (acc, db) => acc + Number(db.sizeBytes),
-    0
-  );
+  const totalSize = mockDatabases.reduce((acc, db) => acc + Number(db.sizeBytes), 0);
+  const totalUsers = mockDatabases.reduce((acc, db) => acc + db.users.length, 0);
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Databases</h1>
-          <p className="text-muted-foreground">
-            Manage MySQL/MariaDB and PostgreSQL databases
+          <h1 className="text-2xl font-bold tracking-tight">Databases</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            MariaDB & PostgreSQL management
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
+        <Button className="gap-2">
+          <Plus className="h-4 w-4" />
           New Database
         </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Databases
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{mockDatabases.length}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Size
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{formatBytes(totalSize)}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Database Users
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              {mockDatabases.reduce((acc, db) => acc + db.users.length, 0)}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search */}
-      <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search databases..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-      </div>
-
-      {/* Databases List */}
-      <div className="space-y-4">
-        {filteredDatabases.map((db) => (
-          <Card key={db.id}>
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                    <DatabaseIcon className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-xl">{db.name}</CardTitle>
-                    <div className="mt-1 flex items-center gap-2">
-                      <Badge variant="outline">
-                        {getDBTypeLabel(db.type)}
-                      </Badge>
-                      {db.linkedSite && (
-                        <Badge variant="secondary" className="text-xs">
-                          {db.linkedSite}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <Button variant="ghost" size="icon">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
+      {/* Stats Row */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        {[
+          { label: "Databases", value: mockDatabases.length, icon: DatabaseIcon, color: "text-blue-500" },
+          { label: "Total Size", value: formatBytes(totalSize), icon: HardDrive, color: "text-violet-500" },
+          { label: "DB Users", value: totalUsers, icon: Key, color: "text-emerald-500" },
+        ].map((stat) => (
+          <Card key={stat.label} className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardContent className="flex items-center gap-4 p-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary">
+                <stat.icon className={`h-5 w-5 ${stat.color}`} />
               </div>
-            </CardHeader>
-
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {/* Size */}
-                <div className="flex items-center gap-3 rounded-lg bg-secondary/50 p-3">
-                  <HardDrive className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Size</p>
-                    <p className="font-semibold">{formatBytes(db.sizeBytes)}</p>
-                  </div>
-                </div>
-
-                {/* Users */}
-                <div className="flex items-center gap-3 rounded-lg bg-secondary/50 p-3">
-                  <Key className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Users</p>
-                    <p className="font-semibold">{db.users.length}</p>
-                  </div>
-                </div>
-
-                {/* Created */}
-                <div className="flex items-center gap-3 rounded-lg bg-secondary/50 p-3">
-                  <DatabaseIcon className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Created</p>
-                    <p className="font-semibold">
-                      {db.createdAt.toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <ExternalLink className="mr-2 h-3 w-3" />
-                    Adminer
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Key className="h-3 w-3" />
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-destructive">
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
+              <div>
+                <p className="text-xs text-muted-foreground">{stat.label}</p>
+                <p className="text-xl font-bold">{stat.value}</p>
               </div>
-
-              {/* Users List */}
-              {db.users.length > 0 && (
-                <div className="mt-4 space-y-2 rounded-lg border p-3">
-                  <p className="text-sm font-medium">Database Users</p>
-                  <div className="space-y-1">
-                    {db.users.map((user, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between text-sm"
-                      >
-                        <span className="font-mono text-muted-foreground">
-                          {user.username}@{user.host}
-                        </span>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="sm">
-                            Change Password
-                          </Button>
-                          <Button variant="ghost" size="sm" className="text-destructive">
-                            Remove
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <Button variant="outline" size="sm" className="w-full">
-                    <Plus className="mr-2 h-3 w-3" />
-                    Add User
-                  </Button>
-                </div>
-              )}
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Empty State */}
-      {filteredDatabases.length === 0 && (
-        <Card className="p-12 text-center">
-          <DatabaseIcon className="mx-auto h-12 w-12 text-muted-foreground" />
+      {/* Search */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search databases..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10 bg-secondary/50 border-transparent focus:border-border"
+        />
+      </div>
+
+      {/* Database List */}
+      <div className="space-y-3 stagger-children">
+        {filtered.map((db) => (
+          <Card key={db.id} className="bg-card/50 backdrop-blur-sm border-border/50 hover:border-border transition-all">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between gap-4">
+                {/* Left: Name + Type */}
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary shrink-0">
+                    <DatabaseIcon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2.5">
+                      <h3 className="text-[15px] font-semibold font-mono">{db.name}</h3>
+                      <Badge variant="outline" className={`text-[10px] h-5 font-semibold ${typeColors[db.type]}`}>
+                        {db.type === "MARIADB" ? "MariaDB" : db.type === "POSTGRESQL" ? "PostgreSQL" : db.type}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className="text-xs text-muted-foreground">
+                        {formatBytes(db.sizeBytes)}
+                      </span>
+                      <span className="text-xs text-muted-foreground">·</span>
+                      <span className="text-xs text-muted-foreground">
+                        {db.users.length} user{db.users.length !== 1 ? "s" : ""}
+                      </span>
+                      {db.linkedSite && (
+                        <>
+                          <span className="text-xs text-muted-foreground">·</span>
+                          <span className="flex items-center gap-1 text-xs text-primary">
+                            <LinkIcon className="h-3 w-3" />
+                            {db.linkedSite}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right: Users + Actions */}
+                <div className="flex items-center gap-3 shrink-0">
+                  {/* User badges */}
+                  <div className="hidden md:flex items-center gap-1.5">
+                    {db.users.map((u, i) => (
+                      <Badge key={i} variant="secondary" className="text-[10px] h-5 font-mono">
+                        {u.username}
+                      </Badge>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" title="Open Adminer">
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreVertical className="h-3.5 w-3.5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem><ExternalLink className="mr-2 h-4 w-4" /> SQL Client</DropdownMenuItem>
+                        <DropdownMenuItem><Key className="mr-2 h-4 w-4" /> Manage Users</DropdownMenuItem>
+                        <DropdownMenuItem><Copy className="mr-2 h-4 w-4" /> Export</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-destructive">
+                          <Trash2 className="mr-2 h-4 w-4" /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {filtered.length === 0 && (
+        <Card className="p-12 text-center bg-card/50">
+          <DatabaseIcon className="mx-auto h-12 w-12 text-muted-foreground/50" />
           <h3 className="mt-4 text-lg font-semibold">No databases found</h3>
-          <p className="text-muted-foreground">
-            {searchQuery
-              ? "Try adjusting your search"
-              : "Get started by creating your first database"}
+          <p className="text-sm text-muted-foreground mt-1">
+            {searchQuery ? "Try adjusting your search" : "Create your first database"}
           </p>
           {!searchQuery && (
-            <Button className="mt-4">
-              <Plus className="mr-2 h-4 w-4" />
-              Create Database
-            </Button>
+            <Button className="mt-4 gap-2"><Plus className="h-4 w-4" /> Create Database</Button>
           )}
         </Card>
       )}

@@ -2,26 +2,40 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  
-  // Experimental features
+
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',
     },
   },
 
-  // Environment variables available to the client
   env: {
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   },
 
-  // Image optimization
   images: {
     domains: ['localhost'],
     formats: ['image/avif', 'image/webp'],
   },
 
-  // Webpack configuration for node-pty
+  // FIX: Security headers
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'X-DNS-Prefetch-Control', value: 'on' },
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+        ],
+      },
+    ];
+  },
+
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.externals.push({
