@@ -17,8 +17,9 @@
 
 ---
 
-## 🔴 ПРИОРИТЕТ 1 — Миграция на Next.js 16.1
+## 🔴 ПРИОРИТЕТ 1 — Миграция на Next.js 16.1 + Собственная тема
 
+### Next.js 16.1 миграция
 | Задача | Статус | Заметки |
 |--------|--------|---------|
 | Обновление `next`, `react`, `react-dom` до 16.1.x | ⬜ | `npx @next/codemod@canary upgrade latest` |
@@ -30,6 +31,88 @@
 | Обновление `@types/react` и `@types/react-dom` | ⬜ | |
 | Проверка всех API routes после миграции | ⬜ | |
 | Проверка `next.config.js` → `next.config.ts` | ⬜ | |
+
+### HostPanel UI — Собственная тема (строим с нуля)
+
+**Цель бандла: < 150KB gzip для initial load**
+
+#### Базовая инфраструктура
+| Задача | Статус | Заметки |
+|--------|--------|---------|
+| Tailwind CSS 4.x — CSS-first конфиг (`@theme`) | ⬜ | |
+| Inter Variable через `next/font/google` | ⬜ | display:swap, один файл |
+| JetBrains Mono для code/terminal | ⬜ | |
+| CSS переменные для всей цветовой схемы | ⬜ | dark only на старте |
+| globals.css с темой и reset | ⬜ | |
+| Radix UI primitives установка | ⬜ | только Dialog, Dropdown, Tooltip, Select |
+| Lucide React | ⬜ | tree-shaking проверить |
+
+#### Layout компоненты
+| Компонент | Статус | Заметки |
+|-----------|--------|---------|
+| `AppShell` (sidebar + header + content) | ⬜ | |
+| `Sidebar` (nav, collapsible → 56px) | ⬜ | |
+| `Header` (лого, поиск, уведомления, профиль) | ⬜ | |
+| `PageHeader` (title + breadcrumb + actions) | ⬜ | |
+| `Card` | ⬜ | border + radius + bg-surface |
+| `Section` | ⬜ | |
+
+#### Data Display компоненты
+| Компонент | Статус | Заметки |
+|-----------|--------|---------|
+| `StatusBadge` (online/offline/warning/error) | ⬜ | пульсирующая dot анимация |
+| `MetricCard` (число + иконка + delta) | ⬜ | |
+| `ProgressBar` (анимированный) | ⬜ | |
+| `UsageBar` (disk/RAM, цвет по порогу) | ⬜ | |
+| `Timeline` (вертикальный) | ⬜ | |
+| `Table` (сортировка, sticky header) | ⬜ | |
+| `EmptyState` | ⬜ | |
+| `Skeleton` (CSS анимация) | ⬜ | |
+
+#### Input компоненты
+| Компонент | Статус | Заметки |
+|-----------|--------|---------|
+| `Button` (primary/secondary/ghost/danger, sm/md/lg) | ⬜ | |
+| `Input` (иконки, error state) | ⬜ | |
+| `Select` (Radix, кастомные стили) | ⬜ | |
+| `Toggle` (switch) | ⬜ | |
+| `Checkbox` (с indeterminate) | ⬜ | |
+| `CodeInput` (моноширинный) | ⬜ | |
+| `FileDropzone` (drag & drop) | ⬜ | |
+| `SegmentedControl` | ⬜ | |
+
+#### Feedback компоненты
+| Компонент | Статус | Заметки |
+|-----------|--------|---------|
+| `Toast` (success/error/info) | ⬜ | |
+| `Modal` (Radix Dialog) | ⬜ | |
+| `ConfirmDialog` (деструктивное подтверждение) | ⬜ | |
+| `Tooltip` (Radix) | ⬜ | |
+| `AlertBanner` | ⬜ | |
+| `Spinner` (CSS only) | ⬜ | |
+
+#### Специальные компоненты
+| Компонент | Статус | Заметки |
+|-----------|--------|---------|
+| `SiteCard` | ⬜ | |
+| `HardwareCard` (CPU/RAM/Disk) | ⬜ | для инсталлятора |
+| `InstallerStep` | ⬜ | |
+| `ChartCard` (Recharts wrapper, lazy) | ⬜ | |
+| `TerminalWindow` (xterm wrapper, lazy) | ⬜ | |
+| `CodeEditor` (Monaco wrapper, lazy) | ⬜ | |
+| `FileTree` | ⬜ | |
+| `BackupCard` | ⬜ | |
+
+#### Проверка качества темы
+| Задача | Статус | Заметки |
+|--------|--------|---------|
+| Initial bundle < 150KB gzip | ⬜ | `next build` → analyze |
+| Monaco lazy-loaded (не в initial) | ⬜ | |
+| xterm lazy-loaded (не в initial) | ⬜ | |
+| Recharts lazy-loaded (не в initial) | ⬜ | |
+| CSS transitions работают без JS | ⬜ | |
+| Sidebar collapsible без лагов | ⬜ | |
+| LCP < 1.5s на холодном старте | ⬜ | |
 
 ---
 

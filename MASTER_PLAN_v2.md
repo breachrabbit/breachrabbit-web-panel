@@ -60,14 +60,16 @@
   "framework": "Next.js 16.1 (App Router)",
   "language": "TypeScript 5.3+",
   "runtime": "Node.js 20.x LTS (минимум 20.9.0)",
-  "styling": "Tailwind CSS 3.4+",
-  "components": "shadcn/ui (кастомизированные)",
+  "styling": "Tailwind CSS 4.x (CSS-first config)",
+  "theme": "HostPanel UI — собственная тема (см. раздел Design System)",
+  "components": "Собственная библиотека поверх Radix UI primitives (без shadcn overhead)",
+  "icons": "Lucide React (легкий, tree-shakeable)",
   "state": "Zustand + TanStack Query v5",
   "forms": "React Hook Form + Zod",
-  "charts": "Recharts",
+  "charts": "Recharts (только нужные компоненты)",
   "terminal": "xterm.js 5.x + xterm-addon-fit + xterm-addon-web-links",
-  "editor": "Monaco Editor (VS Code движок)",
-  "animations": "Framer Motion"
+  "editor": "Monaco Editor (lazy loaded)",
+  "animations": "CSS transitions + Framer Motion только там где реально нужно"
 }
 ```
 
@@ -756,63 +758,198 @@ RAM 16+ GB:
 
 ---
 
-## 🎨 UI/UX Design System
+## 🎨 UI/UX Design System — HostPanel UI
+
+### Философия
+**Собственная тема с нуля.** Никакого NextAdmin, никакого тяжёлого shadcn bundle.  
+Цель: быстрый первый paint, минимум JS в runtime, максимум через CSS.
+
+**Принципы:**
+- CSS-first: анимации, переходы, hover-эффекты — через CSS, не JS
+- Tree-shaking везде: импортируем только то что используем
+- Radix UI primitives — только для accessibility (dropdown, dialog, tooltip) без стилей
+- Lucide icons — SVG inline, tree-shakeable
+- Monaco и xterm — строго lazy-loaded (не попадают в initial bundle)
+- Нет тяжёлых UI-библиотек целиком (no MUI, no Ant, no full shadcn)
+
+### Бандл-стратегия
+```
+Initial bundle (цель < 150KB gzip):
+  ├── Next.js runtime         ~40KB
+  ├── React                   ~45KB
+  ├── Zustand                  ~3KB
+  ├── HostPanel UI theme       ~25KB  (все базовые компоненты)
+  ├── Lucide (tree-shaken)     ~8KB
+  └── TanStack Query           ~15KB
+
+Lazy loaded (только когда нужно):
+  ├── Monaco Editor           ~2MB   (только на странице редактора)
+  ├── xterm.js                ~300KB (только страница терминала)
+  ├── Recharts                ~150KB (только страницы с графиками)
+  └── Framer Motion           ~50KB  (только инсталлятор)
+```
 
 ### Цветовая схема
 
 ```css
-:root {
+/* globals.css — Tailwind CSS 4 CSS-first approach */
+@theme {
   /* Backgrounds */
-  --bg-primary:    #0a0a0a;
-  --bg-secondary:  #111111;
-  --bg-tertiary:   #1a1a1a;
-  --bg-card:       #141414;
+  --color-bg-base:      #080808;
+  --color-bg-surface:   #101010;
+  --color-bg-elevated:  #181818;
+  --color-bg-overlay:   #202020;
   
   /* Borders */
-  --border:        #222222;
-  --border-hover:  #333333;
-  --border-active: #444444;
+  --color-border:       rgba(255,255,255,0.07);
+  --color-border-hover: rgba(255,255,255,0.12);
+  --color-border-focus: rgba(255,255,255,0.20);
   
   /* Text */
-  --text-primary:   #f5f5f5;
-  --text-secondary: #999999;
-  --text-muted:     #555555;
+  --color-text-primary:   #f0f0f0;
+  --color-text-secondary: #888888;
+  --color-text-muted:     #444444;
+  --color-text-inverse:   #080808;
   
-  /* Accent */
-  --accent:         #3b82f6;
-  --accent-hover:   #2563eb;
-  --accent-muted:   #1d3a5f;
+  /* Accent — Blue */
+  --color-accent:         #3b82f6;
+  --color-accent-hover:   #2563eb;
+  --color-accent-subtle:  rgba(59,130,246,0.10);
+  --color-accent-border:  rgba(59,130,246,0.30);
   
   /* Status */
-  --success:  #10b981;
-  --warning:  #f59e0b;
-  --error:    #ef4444;
-  --info:     #6366f1;
+  --color-success:        #10b981;
+  --color-success-subtle: rgba(16,185,129,0.10);
+  --color-warning:        #f59e0b;
+  --color-warning-subtle: rgba(245,158,11,0.10);
+  --color-error:          #ef4444;
+  --color-error-subtle:   rgba(239,68,68,0.10);
+  --color-info:           #6366f1;
+  --color-info-subtle:    rgba(99,102,241,0.10);
   
   /* Special */
-  --wordpress: #21759b;
-  --terminal:  #00ff41;  /* Matrix green */
+  --color-wordpress:      #21759b;
+  --color-terminal-green: #00d46a;
+  --color-terminal-bg:    #0a0a0a;
+  
+  /* Sizing */
+  --sidebar-width:        240px;
+  --header-height:        56px;
+  --radius-sm:            6px;
+  --radius-md:            10px;
+  --radius-lg:            14px;
+  --radius-xl:            20px;
 }
 ```
 
 ### Typography
 
 ```css
-font-family: 'Inter Variable', -apple-system, BlinkMacSystemFont, sans-serif;
-font-mono:   'JetBrains Mono', 'Fira Code', monospace;
+/* System font stack — ноль сетевых запросов */
+--font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+--font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+
+/* Шрифт загружается через next/font/google с display:swap */
+/* Inter Variable — один файл вместо множества начертаний */
 ```
 
-### Компоненты (shadcn/ui + кастом)
+### Layout структура
 
-- `StatusBadge` — зелёный/жёлтый/красный статус сайта
-- `MetricCard` — карточка с графиком (CPU, RAM, Disk)
-- `ProgressBar` — для бэкапов и установщика
-- `TerminalWindow` — xterm.js wrapper
-- `FileTree` — дерево файлов
-- `CodeEditor` — Monaco Editor wrapper
-- `AlertBanner` — SSL/disk предупреждения
-- `SiteCard` — карточка сайта в списке
-- `BackupTimeline` — таймлайн снимков Restic
+```
+┌─────────────────────────────────────────────────────┐
+│  Header (56px) — лого, поиск, уведомления, профиль  │
+├──────────────┬──────────────────────────────────────┤
+│              │                                       │
+│  Sidebar     │  Main Content                         │
+│  (240px)     │  (fluid)                              │
+│              │                                       │
+│  nav items   │  ┌─────────────────────────────────┐ │
+│  с иконками  │  │  Page Header (title + actions)  │ │
+│              │  ├─────────────────────────────────┤ │
+│  collapsed   │  │                                 │ │
+│  → 56px      │  │  Content                        │ │
+│  (иконки)    │  │                                 │ │
+│              │  └─────────────────────────────────┘ │
+└──────────────┴──────────────────────────────────────┘
+```
+
+### Компоненты HostPanel UI
+
+Все компоненты — в `/components/ui/` — собственные, легкие:
+
+**Layout:**
+- `AppShell` — обёртка sidebar + header + content
+- `Sidebar` — навигация, collapsible, active states
+- `Header` — топ-бар с поиском и уведомлениями
+- `PageHeader` — заголовок страницы + actions
+- `Card` — базовая карточка (border, radius, bg-surface)
+- `Section` — секция с заголовком внутри страницы
+
+**Data Display:**
+- `StatusBadge` — online/offline/warning/error с dot
+- `MetricCard` — число + иконка + delta + мини-спарклайн
+- `StatRow` — строка: label + value (для таблиц настроек)
+- `ProgressBar` — анимированный, с лейблом и процентом
+- `UsageBar` — disk/RAM с цветом по порогу (зелёный→жёлтый→красный)
+- `Timeline` — вертикальный таймлайн (для бэкапов, логов)
+- `Table` — таблица с сортировкой, sticky header
+- `EmptyState` — иконка + текст + CTA когда нет данных
+
+**Inputs:**
+- `Button` — primary / secondary / ghost / danger, sizes sm/md/lg
+- `Input` — с иконкой слева/справа, error state
+- `Select` — на Radix, кастомные стили
+- `Toggle` — switch для enable/disable
+- `Checkbox` — с indeterminate state
+- `CodeInput` — моноширинный инпут (для паролей, команд)
+- `FileDropzone` — drag & drop загрузка файлов
+- `SegmentedControl` — таб-переключатель (замена radio)
+
+**Feedback:**
+- `Toast` — уведомления (success/error/info), автоскрытие
+- `Modal` — диалог на Radix Dialog
+- `ConfirmDialog` — "Вы уверены?" с деструктивной кнопкой
+- `Tooltip` — на Radix Tooltip, без JS overhead
+- `AlertBanner` — предупреждения вверху страницы
+- `Skeleton` — loading placeholder (CSS animation)
+- `Spinner` — лёгкий CSS spinner
+
+**Специальные:**
+- `SiteCard` — карточка сайта (статус, домен, SSL, метрики)
+- `TerminalWindow` — xterm.js wrapper с header-строкой
+- `CodeEditor` — Monaco wrapper (lazy)
+- `FileTree` — дерево файлов (рекурсивное)
+- `BackupCard` — карточка снимка Restic
+- `ChartCard` — Recharts wrapper с заголовком и легендой
+- `HardwareCard` — карточка сервера (CPU/RAM/Disk)
+- `InstallerStep` — шаг wizard с иконкой + статусом
+
+### Визуальный стиль
+
+```
+Карточки:        тонкая граница rgba(255,255,255,0.07) + radius 10px
+                 bg-surface (#101010), нет тени (shadow-free)
+                 hover: border становится чуть светлее (CSS transition)
+
+Кнопки:          Primary — solid accent blue, radius 8px
+                 Ghost — прозрачный фон, border при hover
+                 Danger — красный только при hover/focus (не кричит)
+
+Sidebar:         bg-base (#080808), items с radius 6px
+                 Active: accent-subtle bg + accent text
+                 Hover: overlay bg
+
+Таблицы:         полосатые строки через odd/even
+                 hover строки — лёгкое highlight
+                 sticky header с bg-surface
+
+Статус-точки:    пульсирующая CSS анимация для "online"
+                 статичная для offline/warning
+
+Переходы:        150ms ease для hover
+                 200ms ease для modal/dropdown появления
+                 Нет тяжёлых spring-анимаций в обычном UI
+```
 
 ---
 
