@@ -1,58 +1,23 @@
-import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcryptjs';
-import { randomBytes } from 'crypto';
+import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcrypt'
 
-const prisma = new PrismaClient();
-
-// FIX: Generate secure random password instead of hardcoded 'admin123'
-function generateSecurePassword(length = 16): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
-  const bytes = randomBytes(length);
-  let password = '';
-  for (let i = 0; i < length; i++) {
-    password += chars[bytes[i] % chars.length];
-  }
-  return password;
-}
+const prisma = new PrismaClient()
 
 async function main() {
-  console.log('🌱 Seeding database...');
+  const hashed = await bcrypt.hash('admin123', 10)
 
-  // Use env variable or generate a new password
-  const adminPassword = process.env.ADMIN_INITIAL_PASSWORD || generateSecurePassword();
-
-  // FIX: bcrypt cost 12 (was 10)
-  const hashedPassword = await bcrypt.hash(adminPassword, 12);
-
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@breachrabbit.pro' },
+  await prisma.user.upsert({
+    where: { email: 'admin@example.com' },
     update: {},
     create: {
-      email: 'admin@breachrabbit.pro',
-      passwordHash: hashedPassword,
-      role: 'ADMIN',
-      firstName: 'Admin',
-      lastName: 'User',
-      language: 'ru',
-      timezone: 'Europe/Moscow',
-    },
-  });
+      email: 'admin@example.com',
+      password: hashed
+    }
+  })
 
-  console.log('✅ Admin user created:', admin.email);
-  console.log('');
-  console.log('╔══════════════════════════════════════════════════╗');
-  console.log('║  🔐 INITIAL ADMIN PASSWORD (save this now!):    ║');
-  console.log(`║  ${adminPassword.padEnd(48)}║`);
-  console.log('║  ⚠️  This will NOT be shown again!              ║');
-  console.log('╚══════════════════════════════════════════════════╝');
-  console.log('');
+  console.log('Seed complete: admin@example.com / admin123')
 }
 
 main()
-  .catch((e) => {
-    console.error('❌ Seed error:', e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .catch(e => console.error(e))
+  .finally(() => prisma.$disconnect())
