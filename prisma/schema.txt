@@ -1,0 +1,584 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// USERS & AUTHENTICATION
+// ============================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  role          UserRole  @default(CLIENT)
+  firstName     String?
+  lastName      String?
+  avatar        String?
+  
+  // Settings
+  language      String    @default("en")
+  timezone      String    @default("UTC")
+  theme         String    @default("dark")
+  
+  // Security
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret  String?
+  lastLoginAt      DateTime?
+  lastLoginIp      String?
+  
+  // Relationships
+  sites         Site[]
+  databases     Database[]
+  apiKeys       ApiKey[]
+  auditLogs     AuditLog[]
+  notifications Notification[]
+  sessions      Session[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([email])
+  @@index([role])
+}
+
+enum UserRole {
+  ADMIN       // Полный доступ
+  CLIENT      // Ограниченный доступ к своим сайтам
+  DEVELOPER   // Расширенный доступ (SSH, Git)
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  token        String   @unique
+  expiresAt    DateTime
+  
+  ipAddress    String?
+  userAgent    String?
+  
+  createdAt    DateTime @default(now())
+  
+  @@index([userId])
+  @@index([token])
+}
+
+model ApiKey {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name        String
+  key         String   @unique
+  permissions String[] // ["sites.create", "databases.read"]
+  
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  isActive    Boolean  @default(true)
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([key])
+}
+
+// ============================================================================
+// SITES MANAGEMENT
+// ============================================================================
+
+model Site {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Basic Info
+  domain        String      @unique
+  type          SiteType    @default(WORDPRESS)
+  status        SiteStatus  @default(ACTIVE)
+  
+  // Paths
+  rootPath      String      // /var/www/example.com
+  
+  // PHP Settings (для WordPress/PHP сайтов)
+  phpVersion    String?     @default("8.2")
+  phpMemoryLimit String?    @default("256M")
+  phpMaxExecutionTime Int?  @default(300)
+  
+  // Proxy Settings (для Docker/Node.js)
+  proxyTarget   String?     // http://localhost:3000
+  proxyWebsockets Boolean   @default(false)
+  
+  // WordPress specific
+  wpVersion     String?
+  wpAutoUpdate  Boolean     @default(true)
+  wpPluginsAutoUpdate Boolean @default(false)
+  
+  // SSL
+  sslEnabled    Boolean     @default(true)
+  sslProvider   String?     @default("letsencrypt")
+  sslExpiry     DateTime?
+  sslAutoRenew  Boolean     @default(true)
+  sslRenewDays  Int         @default(30)
+  
+  // Security
+  basicAuthEnabled Boolean  @default(false)
+  basicAuthUser    String?
+  basicAuthPass    String?
+  
+  // Statistics (cached)
+  bandwidth24h     BigInt?    @default(0)
+  requests24h      Int?       @default(0)
+  avgResponseTime  Float?     @default(0)
+  lastCheckedAt    DateTime?
+  
+  // Relationships
+  databases     SiteDatabase[]
+  backups       Backup[]
+  deployments   Deployment[]
+  cronJobs      CronJob[]
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  @@index([userId])
+  @@index([domain])
+  @@index([status])
+  @@index([type])
+}
+
+enum SiteType {
+  WORDPRESS      // WordPress сайт
+  STATIC         // Статический HTML/CSS/JS
+  PHP            // Обычный PHP сайт
+  NODEJS_PROXY   // Node.js через proxy
+  DOCKER_PROXY   // Docker контейнер через proxy
+  CUSTOM_PROXY   // Любой другой proxy
+}
+
+enum SiteStatus {
+  ACTIVE         // Работает
+  STOPPED        // Остановлен
+  SUSPENDED      // Приостановлен (неоплата)
+  BUILDING       // Создается
+  ERROR          // Ошибка
+}
+
+// ============================================================================
+// DATABASES
+// ============================================================================
+
+model Database {
+  id            String       @id @default(cuid())
+  userId        String
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name          String       @unique
+  type          DatabaseType @default(MARIADB)
+  charset       String       @default("utf8mb4")
+  collation     String       @default("utf8mb4_unicode_ci")
+  
+  // Size tracking
+  sizeBytes     BigInt       @default(0)
+  lastSizeCheck DateTime?
+  
+  // Relationships
+  users         DatabaseUser[]
+  sites         SiteDatabase[]
+  backups       DatabaseBackup[]
+  
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  
+  @@index([userId])
+  @@index([name])
+}
+
+enum DatabaseType {
+  MARIADB
+  POSTGRESQL
+  MONGODB
+}
+
+model DatabaseUser {
+  id            String   @id @default(cuid())
+  databaseId    String
+  database      Database @relation(fields: [databaseId], references: [id], onDelete: Cascade)
+  
+  username      String
+  passwordHash  String
+  host          String   @default("localhost")
+  
+  permissions   String[] // ["SELECT", "INSERT", "UPDATE", "DELETE", "CREATE", "DROP"]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@unique([databaseId, username, host])
+  @@index([databaseId])
+}
+
+model SiteDatabase {
+  id         String   @id @default(cuid())
+  siteId     String
+  site       Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  databaseId String
+  database   Database @relation(fields: [databaseId], references: [id], onDelete: Cascade)
+  
+  isPrimary  Boolean  @default(false) // Главная БД сайта
+  
+  createdAt  DateTime @default(now())
+  
+  @@unique([siteId, databaseId])
+  @@index([siteId])
+  @@index([databaseId])
+}
+
+// ============================================================================
+// SSL CERTIFICATES
+// ============================================================================
+
+model SslCertificate {
+  id            String   @id @default(cuid())
+  
+  domain        String   @unique
+  provider      String   // letsencrypt, zerossl, custom
+  
+  certPath      String
+  keyPath       String
+  chainPath     String?
+  
+  issuedAt      DateTime
+  expiresAt     DateTime
+  
+  autoRenew     Boolean  @default(true)
+  renewDays     Int      @default(30)
+  lastRenewAt   DateTime?
+  
+  status        String   @default("active") // active, expiring, expired, error
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([domain])
+  @@index([expiresAt])
+  @@index([status])
+}
+
+// ============================================================================
+// BACKUPS
+// ============================================================================
+
+model Backup {
+  id            String       @id @default(cuid())
+  siteId        String?
+  site          Site?        @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  
+  type          BackupType
+  status        BackupStatus @default(PENDING)
+  
+  // Backup details
+  sizeBytes     BigInt?
+  filePath      String?      // Путь к архиву
+  resticId      String?      // ID снимка в Restic
+  
+  // Storage
+  storageType   String       @default("local") // local, s3, ftp
+  storageConfig Json?
+  
+  // Metadata
+  filesCount    Int?
+  errorMessage  String?
+  
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime     @default(now())
+  
+  @@index([siteId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum BackupType {
+  FULL          // Полный бэкап (файлы + БД)
+  FILES         // Только файлы
+  DATABASE      // Только БД
+  CONFIG        // Только конфиги
+}
+
+enum BackupStatus {
+  PENDING       // В очереди
+  RUNNING       // Выполняется
+  COMPLETED     // Завершен успешно
+  FAILED        // Ошибка
+}
+
+model DatabaseBackup {
+  id            String       @id @default(cuid())
+  databaseId    String
+  database      Database     @relation(fields: [databaseId], references: [id], onDelete: Cascade)
+  
+  status        BackupStatus @default(PENDING)
+  sizeBytes     BigInt?
+  filePath      String?
+  
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime     @default(now())
+  
+  @@index([databaseId])
+  @@index([createdAt])
+}
+
+model BackupSchedule {
+  id            String   @id @default(cuid())
+  
+  name          String
+  description   String?
+  
+  // Что бэкапить
+  targetType    String   // site, database, server
+  targetId      String?  // ID сайта или БД (null для всего сервера)
+  
+  // Расписание
+  cronExpression String  // "0 2 * * *"
+  timezone      String   @default("UTC")
+  
+  // Retention
+  keepDaily     Int      @default(7)
+  keepWeekly    Int      @default(4)
+  keepMonthly   Int      @default(3)
+  
+  // Storage
+  storageType   String   @default("local")
+  storageConfig Json?
+  
+  isEnabled     Boolean  @default(true)
+  lastRunAt     DateTime?
+  nextRunAt     DateTime?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([isEnabled])
+  @@index([nextRunAt])
+}
+
+// ============================================================================
+// FIREWALL
+// ============================================================================
+
+model FirewallRule {
+  id            String   @id @default(cuid())
+  
+  name          String
+  description   String?
+  
+  action        String   // allow, deny, reject
+  protocol      String   // tcp, udp, icmp, all
+  
+  port          String?  // "80" или "1000-2000"
+  sourceIp      String?  // IP или CIDR
+  destinationIp String?
+  
+  zone          String?  // public, trusted, docker
+  interface     String?  // eth0, docker0
+  
+  priority      Int      @default(100)
+  isEnabled     Boolean  @default(true)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([isEnabled])
+  @@index([priority])
+}
+
+// ============================================================================
+// CRON JOBS
+// ============================================================================
+
+model CronJob {
+  id            String       @id @default(cuid())
+  siteId        String?
+  site          Site?        @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  
+  name          String
+  description   String?
+  
+  command       String
+  schedule      String       // Cron expression
+  user          String       @default("www-data")
+  
+  isEnabled     Boolean      @default(true)
+  
+  lastRunAt     DateTime?
+  lastStatus    String?      // success, failed
+  lastOutput    String?
+  lastError     String?
+  
+  nextRunAt     DateTime?
+  
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  
+  @@index([siteId])
+  @@index([isEnabled])
+  @@index([nextRunAt])
+}
+
+// ============================================================================
+// DEPLOYMENTS (Git/FTP)
+// ============================================================================
+
+model Deployment {
+  id            String           @id @default(cuid())
+  siteId        String
+  site          Site             @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  
+  type          DeploymentType
+  status        DeploymentStatus @default(PENDING)
+  
+  // Git specific
+  gitRepo       String?
+  gitBranch     String?          @default("main")
+  gitCommit     String?
+  
+  // Build
+  buildCommand  String?
+  deployPath    String
+  
+  // Logs
+  buildLog      String?
+  errorLog      String?
+  
+  triggeredBy   String?          // user_id или "webhook"
+  
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime         @default(now())
+  
+  @@index([siteId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum DeploymentType {
+  GIT
+  ZIP_UPLOAD
+  FTP
+  MANUAL
+}
+
+enum DeploymentStatus {
+  PENDING
+  CLONING
+  BUILDING
+  DEPLOYING
+  COMPLETED
+  FAILED
+}
+
+// ============================================================================
+// MONITORING & LOGS
+// ============================================================================
+
+model ServerMetric {
+  id            String   @id @default(cuid())
+  
+  timestamp     DateTime @default(now())
+  
+  // CPU
+  cpuUsage      Float
+  cpuCores      Int
+  loadAverage   Float[]  // [1m, 5m, 15m]
+  
+  // Memory
+  memoryTotal   BigInt
+  memoryUsed    BigInt
+  memoryFree    BigInt
+  swapTotal     BigInt
+  swapUsed      BigInt
+  
+  // Disk
+  diskTotal     BigInt
+  diskUsed      BigInt
+  diskFree      BigInt
+  
+  // Network
+  networkIn     BigInt   // bytes
+  networkOut    BigInt
+  
+  @@index([timestamp])
+}
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  action        String   // site.create, database.delete, etc
+  resource      String?  // Тип ресурса
+  resourceId    String?  // ID ресурса
+  
+  details       Json?    // Детали изменений
+  
+  ipAddress     String?
+  userAgent     String?
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// NOTIFICATIONS
+// ============================================================================
+
+model Notification {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type          String   // ssl_expiring, backup_failed, disk_full
+  title         String
+  message       String
+  severity      String   @default("info") // info, warning, error, critical
+  
+  isRead        Boolean  @default(false)
+  readAt        DateTime?
+  
+  metadata      Json?    // Дополнительные данные
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// SYSTEM SETTINGS
+// ============================================================================
+
+model SystemSetting {
+  id            String   @id @default(cuid())
+  
+  key           String   @unique
+  value         Json
+  description   String?
+  
+  updatedAt     DateTime @updatedAt
+  
+  @@index([key])
+}
