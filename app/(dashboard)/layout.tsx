@@ -1,13 +1,15 @@
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard-shell";
 
-// CRITICAL: prevents Next.js from statically generating these pages
-// useSession() requires runtime (browser) — cannot run during build
 export const dynamic = "force-dynamic";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+  if (!session) redirect("/login");
   return <DashboardShell>{children}</DashboardShell>;
 }
