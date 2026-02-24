@@ -3,11 +3,6 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
-  // Server Actions
-  serverActions: {
-    bodySizeLimit: "10mb",
-  },
-
   // Environment variables available to the client
   env: {
     NEXT_PUBLIC_APP_URL:
