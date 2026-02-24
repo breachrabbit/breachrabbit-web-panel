@@ -65,7 +65,15 @@
 | Dashboard метрики | 🧪 | | Mock data |
 | Sites таблица | 🧪 | | Mock data |
 | Databases карточки | 🧪 | | Mock data |
-| Sidebar навигация | 🧪 | | |
+| Sidebar навигация | 🧪 | | Все ссылки ведут на реальные страницы |
+| Firewall страница | 🧪 | | Mock data + API ready |
+| Cron Jobs страница | 🧪 | | Mock data + API ready |
+| File Manager страница | 🧪 | | Mock data + API ready |
+| Terminal страница | 🧪 | | Preview mode, WebSocket готов |
+| Logs страница | 🧪 | | Mock data |
+| Settings страница | 🧪 | | Все секции |
+| Backups страница | 🧪 | | Mock data |
+| Monitoring страница | 🧪 | | Live CPU/RAM анимация |
 | **Сборка** | | | |
 | `npm install` | 🧪 | | Нужно проверить на сервере |
 | `npm run build` | 🧪 | | Нужно проверить на сервере |
@@ -97,56 +105,83 @@
 
 ## 🟡 ПРИОРИТЕТ 3 — Ядро функционала
 
+### Фундамент
+| Задача | Статус | Заметки |
+|--------|--------|---------|
+| `lib/shell.ts` — безопасный shell wrapper | ✅ | shellExec, shellExecFile, shellStream, shellSudo |
+| `lib/integrations/ols-api.ts` — OLS REST клиент | ✅ | Полное покрытие API |
+
 ### OLS API (Полное покрытие)
 | Функция | Статус | Заметки |
 |---------|--------|---------|
-| Статус сервера | ⬜ | |
-| Restart / Graceful Restart / Reload | ⬜ | |
-| CRUD vhosts | ⬜ | |
-| Enable/disable vhost | ⬜ | |
-| CRUD listeners | ⬜ | |
-| PHP версии | ⬜ | |
-| LSCache stats + flush | ⬜ | |
-| OPcache stats + flush | ⬜ | |
+| Статус сервера | ✅ | API route + OLS client |
+| Restart / Graceful Restart / Reload | ✅ | POST /api/ols |
+| CRUD vhosts | ✅ | create/update/delete/enable/disable |
+| Enable/disable vhost | ✅ | |
+| CRUD listeners | ✅ | create/delete/list |
+| PHP версии | ✅ | list + config |
+| LSCache stats + flush | ✅ | |
+| OPcache stats + flush | ✅ | |
 
 ### SSL — Кастомные сертификаты
 | Функция | Статус | Заметки |
 |---------|--------|---------|
-| UI загрузки (.crt + .key + chain) | ⬜ | |
-| Валидация сертификата | ⬜ | |
-| Просмотр деталей | ⬜ | |
-| Единый список auto + custom | ⬜ | |
+| ssl-service.ts | ✅ | Let's Encrypt + custom |
+| API routes (/api/ssl) | ✅ | CRUD + renew |
+| UI загрузки (.crt + .key + chain) | 🧪 | Через API |
+| Валидация сертификата | ✅ | openssl x509 |
+| Просмотр деталей | ✅ | parseCertInfo |
+| Единый список auto + custom | ✅ | listCertificates |
 
 ### Файловый менеджер
 | Функция | Статус | Заметки |
 |---------|--------|---------|
-| Дерево директорий + список файлов | ⬜ | |
-| Upload (drag & drop) | ⬜ | |
-| Download / ZIP | ⬜ | |
-| CRUD файлов и папок | ⬜ | |
-| CHMOD визуальный | ⬜ | |
-| Monaco Editor | ⬜ | |
+| file-manager.ts сервис | ✅ | Path validation, CRUD, zip |
+| API routes (/api/files) | ✅ | list/read/write/mkdir/delete/chmod |
+| Дерево директорий + список файлов | ✅ | Таблица с иконками |
+| Upload (drag & drop) | 🔄 | UI готов, backend нужен multipart |
+| Download / ZIP | ✅ | createZip, extractZip |
+| CRUD файлов и папок | ✅ | |
+| CHMOD визуальный | ✅ | getPermissions/setPermissions |
+| Monaco Editor | ⬜ | Будет позже |
+| Breadcrumb навигация | ✅ | |
+| Мульти-выделение + toolbar | ✅ | Copy/Move/Zip/Delete |
 
 ### Терминал
 | Функция | Статус | Заметки |
 |---------|--------|---------|
-| xterm.js + node-pty | ⬜ | |
-| Socket.io I/O | ⬜ | |
-| Несколько вкладок | ⬜ | |
+| Preview терминал (UI) | ✅ | Эмуляция команд |
+| WebSocket сервер (node-pty) | ✅ | server/terminal-ws.ts |
+| API route (/api/terminal) | ✅ | Single-shot execution |
+| xterm.js интеграция | 🔄 | Подключить на сервере |
+| Несколько вкладок | ✅ | UI готов |
+| Fullscreen режим | ✅ | |
 
 ### Firewall (UFW)
 | Функция | Статус | Заметки |
 |---------|--------|---------|
-| Статус UFW | ⬜ | |
-| CRUD правил | ⬜ | |
-| Fail2ban интеграция | ⬜ | |
+| firewall-service.ts | ✅ | UFW + Fail2ban |
+| API routes (/api/firewall) | ✅ | enable/disable/add/delete/defaults |
+| Статус UFW | ✅ | Парсинг ufw status verbose |
+| CRUD правил | ✅ | Add/Delete с модалкой |
+| Fail2ban интеграция | ✅ | Статус + jails + banned IPs |
 
 ### Cron менеджер
 | Функция | Статус | Заметки |
 |---------|--------|---------|
-| Список + CRUD задач | ⬜ | |
-| Визуальный редактор расписания | ⬜ | |
-| Логи выполнения | ⬜ | |
+| cron-service.ts | ✅ | Парсинг crontab, CRUD |
+| API routes (/api/cron) | ✅ | add/remove/toggle |
+| Список + CRUD задач | ✅ | |
+| Визуальный редактор расписания | ✅ | Пресеты + preview |
+| Toggle enable/disable | ✅ | #DISABLED# pattern |
+
+### Дополнительные страницы
+| Функция | Статус | Заметки |
+|---------|--------|---------|
+| Logs viewer | ✅ | Фильтры по level/source/search |
+| Settings page | ✅ | General/Server/Security/Notifications/API |
+| Backups page | ✅ | Список + статистика (UI ready) |
+| Monitoring page | ✅ | CPU/RAM/Disk/Network + live updates |
 
 ---
 
@@ -157,12 +192,12 @@
 | Restic GUI | ⬜ | |
 | Расписания бэкапов | ⬜ | |
 | Хранилища (local, S3, SFTP) | ⬜ | |
-| CPU/RAM/Disk realtime | ⬜ | |
+| CPU/RAM/Disk realtime | ✅ | Monitoring page с live data |
 | WebSocket push метрик | ⬜ | |
 | Графики по сайтам | ⬜ | |
 | Алерты (SSL, disk, CPU) | ⬜ | |
-| Уведомления (Email, Telegram) | ⬜ | |
-| Логи viewer + live tail | ⬜ | |
+| Уведомления (Email, Telegram) | 🧪 | Settings page UI ready |
+| Логи viewer + live tail | ✅ | Logs page с фильтрами |
 
 ---
 
@@ -206,3 +241,4 @@
 |------|--------|-------------|
 | 2026-02-12 | v1.0 | Первая рабочая версия (Next.js 14, NextAuth v4) |
 | 2026-02-23 | v2.0 | Миграция Next.js 16.1 + React 19 + Auth.js v5, новая дизайн-система |
+| 2026-02-24 | v3.0 | P3: Ядро — shell.ts, OLS API, firewall, cron, files, SSL, terminal, logs, settings, backups, monitoring |
